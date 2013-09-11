@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <!--
+    <parameters>
+        <parameter key="translations_api.example.class">JLaso\TranslationsApiBundle\Example</parameter>
+    </parameters>
+
+    <services>
+        <service id="translations_api.example" class="%translations_api.example.class%">
+            <argument type="service" id="service_id" />
+            <argument>plain_value</argument>
+            <argument>%parameter_name%</argument>
+        </service>
+    </services>
+    -->
+
+    <services>
+        <service id="jlaso_translations.client.api" class="JLaso\TranslationsApiBundle\Service\ClientApiService">
+            <argument>%jlaso_translations_api_access%</argument>
+            <argument>%kernel.environment%</argument>
+        </service>
+    </services>
+
+</container>

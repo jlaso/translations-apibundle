@@ -1,0 +1,23 @@
+{
+    "name": "jlaso/translations-apibundle",
+    "version": "1.0.0",
+    "description": "Client API for translations.com.es",
+    "keywords": ["api", "translations"],
+    "homepage": "https://gitlab.com/jlaso/translations-apibundle",
+    "type": "bundle",
+    "license": "propietary",
+    "authors": [
+        {
+            "name": "Joseluis Laso",
+            "email": "jlaso@joseluislaso.es",
+            "homepage": "http://joseluislaso.es"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "psr-0": { "JLaso\\TranslationsApiBundle": "" }
+    },
+    "target-dir": "JLaso/TranslationsApiBundle"
+}
