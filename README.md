@@ -51,7 +51,7 @@ Configuration
 
 
     // in app/config/config.yml
-    jlaso_translations:
+    translations_api:
         default_locale: %locale%
         managed_locales: ['es', 'en', 'fr', 'ca']  # the languages you want
 
