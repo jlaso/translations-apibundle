@@ -47,7 +47,7 @@ Configuration
         project_id: 1 # the number that correspond to the project created
         key:  1234  # the key that systems assigns
         secret: 1234  # the password that you choose when init project in server
-        url: http://translations.com.es/api/
+        url: http://translations.com.es/app.php/api/
 
 
     // in app/config/config.yml

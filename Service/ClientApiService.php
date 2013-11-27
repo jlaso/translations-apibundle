@@ -57,10 +57,14 @@ class ClientApiService
         $body = curl_exec($hdl);
         $info = curl_getInfo($hdl);
         curl_close($hdl);
+        $result = json_decode($body, true);
 
-        //var_dump($body);
-        //var_dump($info);
-        return json_decode($body, true);
+        if(!count($result)){
+            var_dump(substr($body, 0 , 800));
+            var_dump($info);
+            die;
+        }
+        return $result;
     }
 
     /**
