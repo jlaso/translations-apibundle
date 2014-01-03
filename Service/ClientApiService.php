@@ -53,13 +53,18 @@ class ClientApiService
         curl_setopt($hdl, CURLOPT_POST, true);
         curl_setopt($hdl, CURLOPT_POSTFIELDS, $postFields);
         curl_setopt($hdl, CURLINFO_CONTENT_TYPE, 'application_json');
+        curl_setopt($hdl, CURLOPT_SSL_VERIFYPEER, false);
 
         $body = curl_exec($hdl);
         $info = curl_getInfo($hdl);
         curl_close($hdl);
+        $result = json_decode($body, true);
 
-        //var_dump($body);
-        //var_dump($info);
+        if(!count($result)){
+            var_dump(substr($body, 0 , 800));
+            var_dump($info);
+            die;
+        }
         return json_decode($body, true);
     }
 
