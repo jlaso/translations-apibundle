@@ -13,7 +13,7 @@ Checkout a copy of the code::
         // ...
         {
             "type": "vcs",
-            "url": "https://github.com/jlaso/translations-apibundle.git"
+            "url": "https://jlaso@bitbucket.org/jlaso/translations-apibundle.git"
         }
         // ...
     ],
