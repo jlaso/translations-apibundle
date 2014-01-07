@@ -54,6 +54,7 @@ class ClientApiService
         curl_setopt($hdl, CURLOPT_POSTFIELDS, $postFields);
         curl_setopt($hdl, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($hdl, CURLINFO_CONTENT_TYPE, 'application_json');
+        curl_setopt($hdl, CURLOPT_SSL_VERIFYPEER, false);
 
         $body = curl_exec($hdl);
         $info = curl_getInfo($hdl);
@@ -65,6 +66,7 @@ class ClientApiService
             var_dump($info);
             die;
         }
+        
         return $result;
     }
 

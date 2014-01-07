@@ -33,6 +33,14 @@ class Configuration implements ConfigurationInterface
             ->end()
         ;
 
+        $rootNode
+            ->children()
+                ->scalarNode('default_locale')->end()
+                ->arrayNode('managed_locales')
+                    ->prototype('scalar')->end()
+                ->end()
+            ->end();
+
         return $treeBuilder;
     }
 

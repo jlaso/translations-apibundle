@@ -23,6 +23,8 @@ class TranslationsApiExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
         $container->setParameter('translations_api', $config);
 
+        $container->setParameter('jlaso_translations', $config);
+
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.xml');
     }
