@@ -18,6 +18,8 @@ use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\Translation\MessageCatalogueInterface;
 use Symfony\Component\Yaml\Inline;
 use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\HttpKernel\Kernel;
+
 
 /**
  * Sync translations files - translations server.
@@ -126,7 +128,12 @@ class TranslationsSyncCommand extends ContainerAwareCommand
      */
     protected function getBundleByName($bundleName)
     {
-        return $this->getApplication()->getKernel()->getBundle($bundleName);
+        /** @var Kernel $kernel */
+        $kernel = $this->getApplication()->getKernel();
+
+        $bundles = $kernel->getBundle($bundleName, false);
+
+        return $bundles[count($bundles) - 1];
     }
 
     /**
@@ -160,6 +167,35 @@ class TranslationsSyncCommand extends ContainerAwareCommand
                 }
             }
         };
+
+        /**
+        foreach ($allBundles as $bundleName)  {
+            $this->output->writeln(PHP_EOL . sprintf("<error>%s</error>", $this->center($bundleName)));
+            $locale = "en";
+            $this->output->writeln(PHP_EOL . sprintf('· %s/%s', $bundleName, $locale));
+
+            if(self::APP_BUNDLE_KEY == $bundleName){
+                $bundle = null;
+                $filePattern = $this->srcDir . '../app/Resources/translations/messages.%s.yml';
+            }else{
+                $bundle      = $this->getBundleByName($bundleName);
+                $filePattern = $bundle->getPath() . '/Resources/translations/messages.%s.yml';
+            }
+
+            $fileName = sprintf($filePattern, $locale);
+
+            if(!file_exists($fileName)){
+                $this->output->writeln(sprintf("· · <comment>File '%s' not found</comment>", $fileName));
+            }else{
+                $hasChanged = false;
+                $localKeys  = $this->getYamlAsArray($fileName);
+                $this->output->writeln(sprintf("· · <info>Processing</info> '%s'</info>", $this->fileTrim($fileName)));
+            }
+        }
+        die;
+        */
+
+        $allBundles = array('UserBundle');
 
         $this->output->writeln(PHP_EOL . "· · There are these bundles and keys:");
 

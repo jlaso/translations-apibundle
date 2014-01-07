@@ -52,6 +52,7 @@ class ClientApiService
         curl_setopt($hdl, CURLOPT_TIMEOUT, 10);
         curl_setopt($hdl, CURLOPT_POST, true);
         curl_setopt($hdl, CURLOPT_POSTFIELDS, $postFields);
+        curl_setopt($hdl, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($hdl, CURLINFO_CONTENT_TYPE, 'application_json');
 
         $body = curl_exec($hdl);
@@ -60,7 +61,7 @@ class ClientApiService
         $result = json_decode($body, true);
 
         if(!count($result)){
-            var_dump(substr($body, 0 , 800));
+            file_put_contents(dirname(__FILE__) . '/../../../../../../web/last-error.html',$body);
             var_dump($info);
             die;
         }
@@ -109,7 +110,7 @@ class ClientApiService
     {
         $url = str_replace(
             array(':projectId',                     ':bundle', ':key' ),
-            array($projectId ?: $this->project_id,   $bundle,   $key),
+            array($projectId ?: $this->project_id,   $bundle,   urlencode($key)),
             $this->url_plan['get_messages']);
 
         return $this->callService($url);
@@ -129,7 +130,7 @@ class ClientApiService
     {
         $url = str_replace(
             array(':projectId',                     ':bundle', ':key', ':locale' ),
-            array($projectId ?: $this->project_id,   $bundle,   $key,  $locale),
+            array($projectId ?: $this->project_id,   $bundle,   urlencode($key),  $locale),
             $this->url_plan['get_message']);
 
         return $this->callService($url);
@@ -148,7 +149,7 @@ class ClientApiService
     {
         $url = str_replace(
             array(':projectId',                     ':bundle', ':key'),
-            array($projectId ?: $this->project_id,   $bundle,   $key),
+            array($projectId ?: $this->project_id,   $bundle,   urlencode($key)),
             $this->url_plan['get_comment']);
 
         return $this->callService($url);
@@ -172,7 +173,7 @@ class ClientApiService
         );
         $url = str_replace(
             array(':projectId',                     ':bundle', ':key', ':language'),
-            array($projectId ?: $this->project_id,   $bundle,   $key,   $language),
+            array($projectId ?: $this->project_id,   $bundle,   urlencode($key),   $language),
             $this->url_plan['put_message']);
 
         return $this->callService($url, $data);
@@ -198,7 +199,7 @@ class ClientApiService
         );
         $url = str_replace(
             array(':projectId',                     ':bundle', ':key', ':language'),
-            array($projectId ?: $this->project_id,   $bundle,   $key,   $language),
+            array($projectId ?: $this->project_id,   $bundle,   urlencode($key),   $language),
             $this->url_plan['update_message_if_newest']);
 
         return $this->callService($url, $data);
@@ -223,7 +224,7 @@ class ClientApiService
         );
         $url = str_replace(
             array(':projectId',                     ':bundle', ':key'),
-            array($projectId ?: $this->project_id,   $bundle,   $key),
+            array($projectId ?: $this->project_id,   $bundle,   urlencode($key)),
             $this->url_plan['update_comment_if_newest']);
 
         return $this->callService($url, $data);
