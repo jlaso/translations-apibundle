@@ -21,6 +21,7 @@ class TranslationsApiExtension extends Extension
     {
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
+        $container->setParameter('translations_api', $config);
 
         $container->setParameter('jlaso_translations', $config);
 

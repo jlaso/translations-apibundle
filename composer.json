@@ -3,14 +3,14 @@
     "version": "1.0.0",
     "description": "Client API for translations.com.es",
     "keywords": ["api", "translations"],
-    "homepage": "https://gitlab.com/jlaso/translations-apibundle",
+    "homepage": "https://bitbucket.org/jlaso/translations-apibundle",
     "type": "bundle",
     "license": "propietary",
     "authors": [
         {
             "name": "Joseluis Laso",
             "email": "jlaso@joseluislaso.es",
-            "homepage": "http://joseluislaso.es"
+            "homepage": "http://www.joseluislaso.es"
         }
     ],
     "require": {

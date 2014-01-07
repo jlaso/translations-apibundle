@@ -13,7 +13,7 @@ Checkout a copy of the code::
         // ...
         {
             "type": "vcs",
-            "url": "https://github.com/jlaso/translations-apibundle.git"
+            "url": "https://jlaso@bitbucket.org/jlaso/translations-apibundle.git"
         }
         // ...
     ],
@@ -47,11 +47,11 @@ Configuration
         project_id: 1 # the number that correspond to the project created
         key:  1234  # the key that systems assigns
         secret: 1234  # the password that you choose when init project in server
-        url: http://translations.com.es/api/
+        url: http://translations.com.es/app.php/api/
 
 
     // in app/config/config.yml
-    jlaso_translations:
+    translations_api:
         default_locale: %locale%
         managed_locales: ['es', 'en', 'fr', 'ca']  # the languages you want
 

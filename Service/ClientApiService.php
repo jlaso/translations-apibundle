@@ -65,7 +65,8 @@ class ClientApiService
             var_dump($info);
             die;
         }
-        return json_decode($body, true);
+        
+        return $result;
     }
 
     /**

@@ -95,6 +95,8 @@ class TranslationsSyncCommand extends ContainerAwareCommand
     }
 
     /**
+     * get keys for a bundle in remote repo
+     *
      * @param string $bundle
      * @param bool   $throwsException
      *
@@ -111,7 +113,7 @@ class TranslationsSyncCommand extends ContainerAwareCommand
             if($throwsException){
                 throw new \Exception('error retrieving keys for bundle '. $bundle. ', reason ' .$result['reason']);
             }
-            $this->output->writeln(sprintf('Error retrieving remote keys for bundle %s, reason %s', $bundle, $result['reason']));
+            $this->output->writeln(sprintf('<error>Error retrieving remote keys for bundle %s, reason %s</error>', $bundle, $result['reason']));
 
             return array();
         }
@@ -136,15 +138,15 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         $this->output   = $output;
         $this->init();
 
-        $config         = $this->getContainer()->getParameter('jlaso_translations');
+        $config         = $this->getContainer()->getParameter('translations_api');
         $managedLocales = $config['managed_locales'];
         $managedLocales[] = self::COMMENTS;
-        $apiConfig      = $this->getContainer()->getParameter('jlaso_translations_api_access');
+        //$apiConfig      = $this->getContainer()->getParameter('jlaso_translations_api_access');
 
         $this->output->writeln('<info>*** Syncing bundles translation files ***</info>');
 
         $allLocalBundles = $this->getApplication()->getKernel()->getBundles();
-        $localBundles    = $this->bundles2array($allLocalBundles);
+        //$localBundles    = $this->bundles2array($allLocalBundles);
         $remoteBundles   = $this->getRemoteBundles();
         $allBundles      = $remoteBundles;
 
@@ -152,24 +154,36 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         foreach($allLocalBundles as $bundle){
             // just added bundles that are within / src as the other are not responsible for their translations
             if(strpos($bundle->getPath(), $this->srcDir) === 0 ){
-                $allBundles[] = $bundle->getName();
+                $name = $bundle->getName();
+                if(!isset($allBundles[$name])){
+                    $allBundles[$name] = $name;
+                }
             }
         };
+
+        $this->output->writeln(PHP_EOL . "· · There are these bundles and keys:");
 
         // doing a array with all the keys of all remote bundles
         $keys = array();
         foreach($allBundles as $bundle){
-            $this->output->writeln('<info>Bundle ' . $bundle . ' . . .</info>');
+            $this->output->write(sprintf("\t<info>Bundle %s . . .</info>  ",$bundle));
             $keys[$bundle] = $this->getKeys($bundle, self::THROWS_EXCEPTION);
             $this->output->writeln(sprintf('<error>%d keys in remote</error>', count($keys[$bundle])));
         }
-
         // adding a fake bundle to process translations from /app/Resources/translations
-        $allBundles[] = self::APP_BUNDLE_KEY;
+        $allBundles[self::APP_BUNDLE_KEY] = self::APP_BUNDLE_KEY;
+
+        $this->output->writeln('');
 
         // proccess local keys
         foreach ($allBundles as $bundleName)  {
+
+            $this->output->writeln(PHP_EOL . sprintf("<error>%s</error>", $this->center($bundleName)));
+
             foreach($managedLocales as $locale){
+
+                $this->output->writeln(PHP_EOL . sprintf('· %s/%s', $bundleName, $locale));
+
                 if(self::APP_BUNDLE_KEY == $bundleName){
                     $bundle = null;
                     $filePattern = $this->srcDir . '../app/Resources/translations/messages.%s.yml';
@@ -177,22 +191,28 @@ class TranslationsSyncCommand extends ContainerAwareCommand
                     $bundle      = $this->getBundleByName($bundleName);
                     $filePattern = $bundle->getPath() . '/Resources/translations/messages.%s.yml';
                 }
-                $fileName   = sprintf($filePattern, $locale);
+
+                $fileName = sprintf($filePattern, $locale);
+
+                // en cada iteracion el numero de remoteKeys puede crecer porque los diferentes idiomas pueden aportar
+                // nuevas claves dentro del mismo bundle
                 $remoteKeys = $this->getKeys($bundleName);
+
                 if(!file_exists($fileName)){
-                    $this->output->writeln(sprintf('<comment>File "%s" not found</comment>', $fileName));
+                    $this->output->writeln(sprintf("· · <comment>File '%s' not found</comment>", $fileName));
                 }else{
 //                    $maxDate = new \DateTime(date('c',filemtime($fileName)));
                     $hasChanged = false;
                     $localKeys  = $this->getYamlAsArray($fileName);
-                    $this->output->writeln(sprintf('<info>Processing "%s", found %d translations</info>', $fileName, count($localKeys)));
+                    $this->output->writeln(sprintf("· · <info>Processing</info> '%s', found <info>%d</info> translations", $this->fileTrim($fileName), count($localKeys)));
+                    //$this->output->writeln(sprintf("\t|-- <info>getKeys</info> informs that there are %d keys ", count($remoteKeys)));
                     foreach($localKeys as $localKey=>$message){
                         if(isset($remoteKeys[$localKey])){
                             // remove the key to not process it on the second pass
                             unset($remoteKeys[$localKey]);
                         }
                         if($message){
-                            $this->output->write(sprintf("|-- key %s:%s/%s ... ", $bundleName, $localKey, $locale));
+                            $this->output->write(sprintf("\t|-- key %s:%s/%s ... ", $bundleName, $localKey, $locale));
                             $SCM    = $this->updateOrInsertEntry($bundleName, $fileName, $localKey, $locale, $message);
                             $date   = $SCM->getLastModification();
                             if(self::COMMENTS === $locale){
@@ -201,10 +221,10 @@ class TranslationsSyncCommand extends ContainerAwareCommand
                                 $result = $this->clientApiService->updateMessageIfNewest($bundleName, $localKey, $locale, $message, $date);
                             }
                             if(!$result['result']){
-                                $this->output->writeln(sprintf('Error updating key %s, reason %s', $localKey, $result['reason']));
+                                $this->output->writeln("\t" . sprintf('Error updating key %s, reason %s', $localKey, $result['reason']));
                             }else{
                                 $updated = $result['updated'];
-                                $this->output->writeln($updated ? '-> updated' : '= match');
+                                $this->output->writeln($updated ? "<comment>-> updated</comment>" : '<info>= match</info>');
                                 if(!$updated){
                                     // the remote key is newest than local
                                     $newMessage           = $result['message'];
@@ -222,42 +242,65 @@ class TranslationsSyncCommand extends ContainerAwareCommand
                         }
                     }
                 }
-/*
-                // process the rest of keys that are in remote but not in local
-                foreach($remoteKeys as $remoteKey){
-                    $this->output->writeln(sprintf("|-- key %s:%s ... <- remote", $bundleName, $remoteKey));
-                    if(self::COMMENTS === $locale){
-                        $result = $this->clientApiService->getComment($bundleName, $remoteKey);
-                    }else{
-                        $result = $this->clientApiService->getMessage($bundleName, $remoteKey, $locale);
-                    }
-                    if(!$result['result']){
-                        $this->output->writeln(sprintf('<info>Error getting key %s:%s/%s, reason %s</info>', $bundleName, $remoteKey, $locale, $result['reason']));
-                    }else{
-                        $message    = $result[ (self::COMMENTS === $locale) ? 'comment' : 'message' ];
-                        $updatedAt  = new \DateTime($result['updatedAt']);
-                        $SCM        = $this->updateOrInsertEntry($bundleName, $fileName, $remoteKey, $locale, $message, $updatedAt);
-                        if($SCM->getLastModification()<$updatedAt){
-                            $hasChanged = true;
-//                            if($updatedAt > $maxDate){
-//                                $maxDate = $updatedAt;
-//                            }
-                            $localKeys[$remoteKey] = $message;
+
+                if(count($remoteKeys)){
+                    $this->output->writeln(sprintf("\t|-- there are %d <comment>remote keys</comment>", count($remoteKeys)));
+                    // process the rest of keys that are in remote but not in local
+                    foreach($remoteKeys as $remoteKey){
+                        $this->output->writeln(sprintf("\t|-- key %s:%s ... <question><- remote</question>", $bundleName, $remoteKey));
+                        if(self::COMMENTS === $locale){
+                            $result = $this->clientApiService->getComment($bundleName, $remoteKey);
+                        }else{
+                            $result = $this->clientApiService->getMessage($bundleName, $remoteKey, $locale);
+                        }
+                        if(!$result['result']){
+                            $this->output->writeln("\t" . sprintf('<error>Error getting key %s:%s/%s, reason %s</error>', $bundleName, $remoteKey, $locale, $result['reason']));
+                        }else{
+                            $message    = $result[ (self::COMMENTS === $locale) ? 'comment' : 'message' ];
+                            $updatedAt  = new \DateTime($result['updatedAt']);
+                            $SCM        = $this->updateOrInsertEntry($bundleName, $fileName, $remoteKey, $locale, $message, $updatedAt);
+                            if($SCM->getLastModification()<$updatedAt){
+                                $hasChanged = true;
+    //                            if($updatedAt > $maxDate){
+    //                                $maxDate = $updatedAt;
+    //                            }
+                                $localKeys[$remoteKey] = $message;
+                            }
                         }
                     }
                 }
                 if($hasChanged){
                     $this->dumpYaml($fileName, $localKeys);
                 }
-*/
+
             }
         }
         $this->em->flush();
 
         if ($this->input->getOption('cache-clear')) {
-            $this->output->writeln('<info>Removing translations cache files ...</info>');
+            $this->output->writeln(PHP_EOL . '<info>Removing translations cache files ...</info>');
             $this->getContainer()->get('translator')->removeLocalesCacheFiles($managedLocales);
         }
+
+        $this->output->writeln('');
+    }
+
+    protected function center($text, $width = 120)
+    {
+        $len = strlen($text);
+        if($len<$width){
+            $w = (intval($width - $len)/2);
+            $left = str_repeat('·', $w);
+            $right = str_repeat('·', $width - $len - $w);
+            return  $left . $text . $right;
+        }else{
+            return $text;
+        }
+    }
+
+    protected function fileTrim($fileName)
+    {
+        return str_replace(dirname($this->srcDir), '', $fileName);
     }
 
     /**
@@ -276,6 +319,7 @@ class TranslationsSyncCommand extends ContainerAwareCommand
             // the dir not exists
             mkdir(dirname($file), 0777, true);
         }
+        $this->output->writeln(sprintf("\t|-- <info>saving file</info> '%s'", $this->fileTrim($file)));
         file_put_contents($file, Yaml::dump($this->k2a($keys), 100));
         //touch($fileName, $maxDate->format('U'));
     }
@@ -290,6 +334,8 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         foreach($bundles as $bundle){
             $result[$bundle->getName()] = $bundle->getName();
         }
+
+        //array_combine($bundles, $bundles);
 
         return $result;
     }
