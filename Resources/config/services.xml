@@ -5,10 +5,17 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
+
         <service id="jlaso_translations.client.api" class="JLaso\TranslationsApiBundle\Service\ClientApiService">
             <argument>%jlaso_translations_api_access%</argument>
             <argument>%kernel.environment%</argument>
         </service>
+
+        <service id="jlaso_translations.client.socket" class="JLaso\TranslationsApiBundle\Service\ClientSocketService">
+            <argument>%jlaso_translations_api_access%</argument>
+            <argument>%kernel.environment%</argument>
+        </service>
+
     </services>
 
 </container>
