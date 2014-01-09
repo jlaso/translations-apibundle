@@ -197,7 +197,7 @@ class TranslationsSyncExpressCommand extends ContainerAwareCommand
         die;
         */
 
-        //$allBundles = array('UserBundle');
+        $allBundles = array('EditorBundle');
 
         $this->output->writeln(PHP_EOL . "· · There are these bundles and keys:");
 
@@ -291,19 +291,23 @@ class TranslationsSyncExpressCommand extends ContainerAwareCommand
                         }else{
                             $result = $this->clientApiService->getMessage($bundleName, $remoteKey, $locale);
                         }
-                        if(!$result['result']){
-                            $this->output->writeln("\t" . sprintf('<error>Error getting key %s:%s/%s, reason %s</error>', $bundleName, $remoteKey, $locale, $result['reason']));
-                        }else{
-                            $message    = $result[ (self::COMMENTS === $locale) ? 'comment' : 'message' ];
-                            $updatedAt  = new \DateTime($result['updatedAt']);
-                            $SCM        = $this->updateOrInsertEntry($bundleName, $fileName, $remoteKey, $locale, $message, $updatedAt);
-                            if($SCM->getLastModification()<$updatedAt){
-                                $hasChanged = true;
-    //                            if($updatedAt > $maxDate){
-    //                                $maxDate = $updatedAt;
-    //                            }
-                                $localKeys[$remoteKey] = $message;
+                        try{
+                            if(!$result['result']){
+                                $this->output->writeln("\t" . sprintf('<error>Error getting key %s:%s/%s, reason %s</error>', $bundleName, $remoteKey, $locale, $result['reason']));
+                            }else{
+                                $message    = $result[ (self::COMMENTS === $locale) ? 'comment' : 'message' ];
+                                $updatedAt  = new \DateTime($result['updatedAt']);
+                                $SCM        = $this->updateOrInsertEntry($bundleName, $fileName, $remoteKey, $locale, $message, $updatedAt);
+                                if($SCM->getLastModification()<$updatedAt){
+                                    $hasChanged = true;
+        //                            if($updatedAt > $maxDate){
+        //                                $maxDate = $updatedAt;
+        //                            }
+                                    $localKeys[$remoteKey] = $message;
+                                }
                             }
+                        }catch(\Exception $e){
+                            die($e->getMessage() . ' on line ' . $e->getLine());
                         }
                     }
                 }

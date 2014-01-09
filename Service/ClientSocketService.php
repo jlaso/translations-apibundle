@@ -82,7 +82,7 @@ class ClientSocketService
             die('error');
         };
 
-        $buffer = trim(socket_read($this->socket, 60000, PHP_NORMAL_READ));
+        $buffer = trim(lzf_decompress(socket_read($this->socket, 1024 * 1024, PHP_BINARY_READ)));
         //die("socket_read() falló: razón: " . socket_strerror(socket_last_error($this->socket )) . "\n");
 
         //print $buffer;
