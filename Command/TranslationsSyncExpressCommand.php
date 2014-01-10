@@ -197,7 +197,7 @@ class TranslationsSyncExpressCommand extends ContainerAwareCommand
         die;
         */
 
-        $allBundles = array('EditorBundle');
+        $allBundles = array('ClientExtranetBundle');
 
         $this->output->writeln(PHP_EOL . "· · There are these bundles and keys:");
 
