@@ -88,13 +88,17 @@ class ClientSocketService
             $data
         );
 
-        $msg = lzf_compress(json_encode($data) . PHP_EOL);
+        $msg = json_encode($data) . PHP_EOL;
         //print $msg;
         if(false === socket_write($this->socket, $msg, strlen($msg))){
             die('error');
         };
 
-        $buffer = trim(lzf_decompress(socket_read($this->socket, 1024 * 1024, PHP_BINARY_READ)));
+        do{
+            $read = socket_read($this->socket, 4, PHP_NORMAL_READ);
+        }while($read != 'ACK');
+
+        $buffer = trim(socket_read($this->socket, 1024 * 1024, PHP_NORMAL_READ));
         //die("socket_read() falló: razón: " . socket_strerror(socket_last_error($this->socket )) . "\n");
 
         //print $buffer;
