@@ -22,6 +22,7 @@ use Symfony\Component\Translation\MessageCatalogueInterface;
 use Symfony\Component\Yaml\Inline;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Bundle\FrameworkBundle\Translation\Translator;
 
 
 /**
@@ -42,6 +43,8 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
     /** @var  TranslationRepository */
     private $translationsRepository;
 
+    private $rootDir;
+
     const THROWS_EXCEPTION = true;
 
     /**
@@ -52,9 +55,10 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
         $this->setName('jlaso:translations:sync-mongo');
         $this->setDescription('Sync all translations from translations server.');
         $this->addOption('port', null, InputArgument::OPTIONAL, 'port');
+        $this->addOption('address', null, InputArgument::OPTIONAL, 'address');
     }
 
-    protected function init($port = 10000)
+    protected function init($server = 'localhost', $port = 10000)
     {
         /** @var EntityManager */
         $this->em         = $this->getContainer()->get('doctrine.orm.default_entity_manager');
@@ -62,7 +66,8 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
         $clientApiService = $this->getContainer()->get('jlaso_translations.client.socket');
         $this->clientApiService = $clientApiService;
         $this->translationsRepository = $this->em->getRepository('TranslationsApiBundle:Translation');
-        $this->clientApiService->init($port);
+        $this->clientApiService->init($server, $port);
+        $this->rootDir = $this->getContainer()->get('kernel')->getRootDir();
     }
 
     /**
@@ -73,7 +78,7 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
         $this->input    = $input;
         $this->output   = $output;
 
-        $this->init($input->getOption('port') ?: 10000);
+        $this->init($input->getOption('address') ?: 'localhost',$input->getOption('port') ?: 10000);
 
         $config         = $this->getContainer()->getParameter('translations_api');
         $managedLocales = $config['managed_locales'];
@@ -112,7 +117,10 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
         $this->em->flush();
 
         $this->output->writeln(PHP_EOL . '<info>Flushing translations cache ...</info>');
-        $this->getContainer()->get('translator')->removeLocalesCacheFiles($managedLocales);
+        /** @var Translator $translator */
+        //$translator = $this->getContainer()->get('translator');
+        //$translator->removeLocalesCacheFiles($managedLocales);
+        exec("rm -rf ".$this->rootDir."/app/cache/*");
 
         $this->output->writeln('');
     }

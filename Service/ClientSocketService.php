@@ -39,7 +39,7 @@ class ClientSocketService
         );
     }
 
-    public function init($port)
+    public function init($address, $port)
     {
         if($this->init){
             socket_close($this->socket);
@@ -48,7 +48,6 @@ class ClientSocketService
         /**
          * conseguir un puerto
          */
-        $address = 'localhost'; //$baseUrl;
         ob_implicit_flush();
 
         if (($this->socket  = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
