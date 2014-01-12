@@ -10,6 +10,7 @@ class ClientSocketService
     protected $url_plan;
     protected $base_url;
     protected $project_id;
+    protected $init = false;
 
     public function __construct($apiData, $environment)
     {
@@ -32,14 +33,21 @@ class ClientSocketService
                 'update_message_if_newest' => 'update-message-if-newest',
                 'update_comment_if_newest' => 'update-comment-if-newest',
                 'shutdown'                 => 'shutdown',
+                'upload_keys'              => 'upload-keys',
             ),
             isset($apiData['url_plan']) ? $apiData['url_plan'] : array()
         );
+    }
+
+    public function init($port)
+    {
+        if($this->init){
+            socket_close($this->socket);
+        }
+
         /**
          * conseguir un puerto
          */
-
-        $port = 10001;
         $address = 'localhost'; //$baseUrl;
         ob_implicit_flush();
 
@@ -57,12 +65,16 @@ class ClientSocketService
         $out = trim(socket_read($this->socket, 2048, PHP_NORMAL_READ));
         print $out;
 
+        $this->init = true;
+
     }
 
     function __destruct()
     {
-        //$this->shutdown();
-        socket_close($this->socket);
+        if($this->init){
+            //$this->shutdown();
+            socket_close($this->socket);
+        }
     }
 
     protected function callService($url, $data = array())
@@ -76,9 +88,10 @@ class ClientSocketService
             ),
             $data
         );
-        $msg = json_encode($data) . PHP_EOL;
+
+        $msg = lzf_compress(json_encode($data) . PHP_EOL);
         //print $msg;
-        if(false === socket_write($this->socket, $msg)){
+        if(false === socket_write($this->socket, $msg, strlen($msg))){
             die('error');
         };
 
@@ -282,6 +295,18 @@ class ClientSocketService
                 'comment'           => $comment,
                 'last_modification' => $lastModification->format('c'),
 
+            )
+        );
+    }
+
+    public function uploadKeys($catalog, $data, $projectId = null)
+    {
+        $projectId = $projectId ?: $this->project_id;
+
+        return $this->callService($this->url_plan['upload_keys'], array(
+                'project_id' => $projectId,
+                'catalog'    => $catalog,
+                'data'       => $data,
             )
         );
     }

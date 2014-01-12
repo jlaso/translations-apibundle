@@ -16,6 +16,19 @@
             <argument>%kernel.environment%</argument>
         </service>
 
+        <service id="jlaso_translations.loader.pdo" class="JLaso\TranslationsApiBundle\Translation\Loader\PdoLoader">
+            <argument type="service" id="doctrine.orm.entity_manager" />
+            <call method="registerResources">
+                <argument type="service" id="translator" />
+            </call>
+            <tag name="translation.loader" alias="pdo"/>
+        </service>
+
+        <service id="jlaso_translations.data_collector" class="JLaso\TranslationsApiBundle\Component\HttpKernel\DataCollector\TranslationsDataCollector">
+            <argument type="service" id="translator"></argument>
+            <tag name="data_collector" template="JLasoTranslationsBundle:DataCollector:translations" id="translations" priority="1"/>
+        </service>
+
     </services>
 
 </container>
