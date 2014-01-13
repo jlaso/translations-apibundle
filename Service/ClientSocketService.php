@@ -12,6 +12,11 @@ class ClientSocketService
     protected $project_id;
     protected $init = false;
 
+    const ACK = 'ACK';
+    const BLOCK_SIZE = 4096;
+
+    const DEBUG = false;
+
     public function __construct($apiData, $environment)
     {
         $this->api_key    = isset($apiData['key']) ? $apiData['key'] : '';
@@ -71,9 +76,46 @@ class ClientSocketService
     function __destruct()
     {
         if($this->init){
-            //$this->shutdown();
-            socket_close($this->socket);
+            $this->shutdown();
+            //socket_close($this->socket);
         }
+    }
+
+    protected function sendMessage($msg, $compress = true)
+    {
+        if($compress){
+            $msg = lzf_compress($msg);
+        }else{
+            $msg .= PHP_EOL;
+        }
+
+        $len = strlen($msg);
+        if(self::DEBUG){
+            print "sending {$len} chars" . PHP_EOL;
+        }
+
+        $blocks = ceil($len / self::BLOCK_SIZE);
+        for($i=0; $i<$blocks; $i++){
+
+            $block = substr($msg, $i * self::BLOCK_SIZE,
+                ($i == $blocks-1) ? $len - ($i-1) * self::BLOCK_SIZE : self::BLOCK_SIZE);
+            $prefix = sprintf("%06d:%03d:%03d:", strlen($block), $i+1, $blocks);
+            $aux =  $prefix . $block;
+            if(self::DEBUG){
+                print sprintf("sending block %d from %d, prefix = %s\n", $i+1, $blocks, $prefix);
+            }
+
+            if(false === socket_write($this->socket, $aux, strlen($aux))){
+                die('error');
+            };
+
+            do{
+                $read = socket_read($this->socket, 10, PHP_NORMAL_READ);
+                //print $read;
+            }while(strpos($read, self::ACK) !== 0);
+        }
+
+        return true;
     }
 
     protected function callService($url, $data = array())
@@ -89,14 +131,8 @@ class ClientSocketService
         );
 
         $msg = json_encode($data) . PHP_EOL;
-        //print $msg;
-        if(false === socket_write($this->socket, $msg, strlen($msg))){
-            die('error');
-        };
 
-        do{
-            $read = socket_read($this->socket, 4, PHP_NORMAL_READ);
-        }while($read != 'ACK');
+        $this->sendMessage($msg);
 
         $buffer = trim(socket_read($this->socket, 1024 * 1024, PHP_NORMAL_READ));
         //die("socket_read() falló: razón: " . socket_strerror(socket_last_error($this->socket )) . "\n");
@@ -305,6 +341,8 @@ class ClientSocketService
     public function uploadKeys($catalog, $data, $projectId = null)
     {
         $projectId = $projectId ?: $this->project_id;
+
+        print sprintf("sending %d keys in catalog %s on project %d\n", count($data), $catalog, $projectId);
 
         return $this->callService($this->url_plan['upload_keys'], array(
                 'project_id' => $projectId,

@@ -109,6 +109,7 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
 
             }
 
+            //print_r($data); die;
             $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
 
             $result = $this->clientApiService->uploadKeys($catalog, $data);
