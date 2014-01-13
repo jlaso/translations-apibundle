@@ -13,7 +13,7 @@ class ClientSocketService
     protected $init = false;
 
     const ACK = 'ACK';
-    const BLOCK_SIZE = 4096;
+    const BLOCK_SIZE = 1024;
 
     const DEBUG = false;
 
