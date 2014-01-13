@@ -137,7 +137,7 @@ class ClientSocketService
         $buffer = trim(socket_read($this->socket, 1024 * 1024, PHP_NORMAL_READ));
         //die("socket_read() falló: razón: " . socket_strerror(socket_last_error($this->socket )) . "\n");
 
-        //print $buffer;
+        print $buffer;
 
         $result = json_decode($buffer, true);
         //var_dump($result);
