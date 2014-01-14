@@ -83,6 +83,13 @@ class Translation
         $this->domain    = self::DEFAULT_DOMAIN;
     }
 
+    protected static function dateTimeFromArray($array)
+    {
+        $aux = serialize($array);
+
+        return unserialize('O:8:"DateTime":' . substr($aux, 2, strlen($aux) - 2));
+    }
+
     public static function newFromArray($catalog, $key, $locale, $data, $bundle = '', $file = '')
     {
         $trans = new Translation();
@@ -90,7 +97,7 @@ class Translation
         $trans->setDomain($catalog);
         $trans->setLocale($locale);
         $trans->setMessage($data['message']);
-        $trans->setUpdatedAt(new \DateTime($data['updatedAt']['date'].$data['updatedAt']['timezone']));
+        $trans->setUpdatedAt(self::dateTimeFromArray($data['updatedAt']));
         $trans->setBundle($bundle);
         $trans->setFile($file);
 

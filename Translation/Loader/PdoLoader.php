@@ -46,7 +46,7 @@ class PdoLoader implements LoaderInterface, ResourceInterface
      */
     public function load($resource, $locale, $domain = Translation::DEFAULT_DOMAIN)
     {
-        echo "domain=", $domain, ", locale=$locale<br>";
+        //echo "domain=", $domain, ", locale=$locale<br>";
         // The loader only accepts itself as a resource.
         if ($resource !== $this) {
             return new MessageCatalogue($locale);

@@ -56,6 +56,7 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
         $this->setDescription('Sync all translations from translations server.');
         $this->addOption('port', null, InputArgument::OPTIONAL, 'port');
         $this->addOption('address', null, InputArgument::OPTIONAL, 'address');
+        $this->addOption('force', null, InputArgument::OPTIONAL, 'force=yes to upload our local DB to remote');
     }
 
     protected function init($server = null, $port = null)
@@ -85,36 +86,38 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
 
         $this->output->writeln(PHP_EOL . '<info>*** Syncing translations ***</info>');
 
-//        $catalogs = $this->translationsRepository->getCatalogs();
-//
-//        foreach($catalogs as $catalog){
-//
-//            // data para enviar al servidor
-//            $data = array();
-//
-//            $this->output->writeln(PHP_EOL . sprintf('<info>Processing catalog %s ...</info>', $catalog));
-//
-//            /** @var Translation[] $messages */
-//            $messages = $this->translationsRepository->findBy(array('domain' => $catalog));
-//
-//            foreach($messages as $message){
-//
-//                $key = $message->getKey();
-//                $locale = $message->getLocale();
-//
-//                $data[$key][$locale] = array(
-//                    'message'   => $message->getMessage(),
-//                    'updatedAt' => $message->getUpdatedAt()->format('c'),
-//                );
-//
-//            }
-//
-//            //print_r($data); die;
-//            $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
-//
-//            $result = $this->clientApiService->uploadKeys($catalog, $data);
-//        }
+        if($input->getOption('force') == 'yes'){
 
+            $catalogs = $this->translationsRepository->getCatalogs();
+
+            foreach($catalogs as $catalog){
+
+                // data para enviar al servidor
+                $data = array();
+
+                $this->output->writeln(PHP_EOL . sprintf('<info>Processing catalog %s ...</info>', $catalog));
+
+                /** @var Translation[] $messages */
+                $messages = $this->translationsRepository->findBy(array('domain' => $catalog));
+
+                foreach($messages as $message){
+
+                    $key = $message->getKey();
+                    $locale = $message->getLocale();
+
+                    $data[$key][$locale] = array(
+                        'message'   => $message->getMessage(),
+                        'updatedAt' => $message->getUpdatedAt()->format('c'),
+                    );
+
+                }
+
+                //print_r($data); die;
+                $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
+
+                $result = $this->clientApiService->uploadKeys($catalog, $data);
+            }
+        }
         // truncate local translations table
         $this->translationsRepository->truncateTranslations();
 
@@ -134,15 +137,11 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
             //var_dump($result); die;
 
             foreach($result['data'] as $key=>$data){
-
                 foreach($data as $locale=>$messageData){
-
-                    $this->output->writeln(sprintf("\t|-- key %s:%s/%s ... ", $catalog, $key, $locale));
-
+                    //$this->output->writeln(sprintf("\t|-- key %s:%s/%s ... ", $catalog, $key, $locale));
+                    echo '.';
                     $trans = Translation::newFromArray($catalog, $key, $locale, $messageData);
-                    //var_dump($messageData);
                     $this->em->persist($trans);
-                    $this->em->flush();
                 }
             }
 
