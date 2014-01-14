@@ -83,36 +83,71 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
         $config         = $this->getContainer()->getParameter('translations_api');
         $managedLocales = $config['managed_locales'];
 
-        $this->output->writeln('<info>*** Syncing translations ***</info>');
+        $this->output->writeln(PHP_EOL . '<info>*** Syncing translations ***</info>');
 
-        $catalogs = $this->translationsRepository->getCatalogs();
+//        $catalogs = $this->translationsRepository->getCatalogs();
+//
+//        foreach($catalogs as $catalog){
+//
+//            // data para enviar al servidor
+//            $data = array();
+//
+//            $this->output->writeln(PHP_EOL . sprintf('<info>Processing catalog %s ...</info>', $catalog));
+//
+//            /** @var Translation[] $messages */
+//            $messages = $this->translationsRepository->findBy(array('domain' => $catalog));
+//
+//            foreach($messages as $message){
+//
+//                $key = $message->getKey();
+//                $locale = $message->getLocale();
+//
+//                $data[$key][$locale] = array(
+//                    'message'   => $message->getMessage(),
+//                    'updatedAt' => $message->getUpdatedAt()->format('c'),
+//                );
+//
+//            }
+//
+//            //print_r($data); die;
+//            $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
+//
+//            $result = $this->clientApiService->uploadKeys($catalog, $data);
+//        }
+
+        // truncate local translations table
+        $this->translationsRepository->truncateTranslations();
+
+        $result = $this->clientApiService->getCatalogIndex();
+
+        if($result['result']){
+            $catalogs = $result['catalogs'];
+        }else{
+            die('error getting catalogs');
+        }
 
         foreach($catalogs as $catalog){
 
-            // data para enviar al servidor
-            $data = array();
-
             $this->output->writeln(PHP_EOL . sprintf('<info>Processing catalog %s ...</info>', $catalog));
 
-            /** @var Translation[] $messages */
-            $messages = $this->translationsRepository->findBy(array('domain' => $catalog));
+            $result = $this->clientApiService->downloadKeys($catalog);
+            //var_dump($result); die;
 
-            foreach($messages as $message){
+            foreach($result['data'] as $key=>$data){
 
-                $key = $message->getKey();
-                $locale = $message->getLocale();
+                foreach($data as $locale=>$messageData){
 
-                $data[$key][$locale] = array(
-                    'message'   => $message->getMessage(),
-                    'updatedAt' => $message->getUpdatedAt()->format('c'),
-                );
+                    $this->output->writeln(sprintf("\t|-- key %s:%s/%s ... ", $catalog, $key, $locale));
 
+                    $trans = Translation::newFromArray($catalog, $key, $locale, $messageData);
+                    //var_dump($messageData);
+                    $this->em->persist($trans);
+                    $this->em->flush();
+                }
             }
 
-            //print_r($data); die;
-            $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
+            // meter las traducciones en local
 
-            $result = $this->clientApiService->uploadKeys($catalog, $data);
         }
 
         $this->em->flush();

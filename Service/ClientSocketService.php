@@ -12,7 +12,8 @@ class ClientSocketService
     protected $project_id;
     protected $init = false;
 
-    const ACK = 'ACK';
+    const ACK    = 'ACK';
+    const NO_ACK = 'NO-ACK';
     const BLOCK_SIZE = 1024;
 
     const DEBUG = false;
@@ -31,6 +32,7 @@ class ClientSocketService
         $this->base_url   = $baseUrl;
         $this->url_plan   = array_merge(array(
                 'get_bundle_index'         => 'bundle-index',
+                'get_catalog_index'        => 'catalog-index',
                 'get_key_index'            => 'key-index',
                 'get_messages'             => 'translations',
                 'get_message'              => 'translation-details',
@@ -40,6 +42,7 @@ class ClientSocketService
                 'update_comment_if_newest' => 'update-comment-if-newest',
                 'shutdown'                 => 'shutdown',
                 'upload_keys'              => 'upload-keys',
+                'download_keys'            => 'download-keys',
             ),
             isset($apiData['url_plan']) ? $apiData['url_plan'] : array()
         );
@@ -49,7 +52,8 @@ class ClientSocketService
     {
         if(!$address && !$port){
             $info = $this->createSocket();
-            usleep(600);
+            /** wait 1/2 second */
+            usleep(500000);
 
             if(!$info['result']){
                 var_dump($info); die;
@@ -66,7 +70,10 @@ class ClientSocketService
             echo "socket_create() error: " . socket_strerror(socket_last_error()) . "\n";
         }
 
-        echo sprintf("connecting %s port %d", $address, $port), PHP_EOL;
+        /** wait 1/2 second */
+        usleep(500000);
+
+        echo sprintf("connecting %s port %d", trim($address), intval($port)), PHP_EOL;
 
         if (socket_connect($this->socket , trim($address), intval($port)) === false) {
             echo "socket_connect() error: " . socket_strerror(socket_last_error($this->socket )) . "\n";
@@ -126,6 +133,70 @@ class ClientSocketService
         return true;
     }
 
+    /**
+     * Atomic send of a string trough the socket
+     *
+     * @param $msg
+     *
+     * @return int
+     */
+    protected function send($msg)
+    {
+        $msg .= PHP_EOL;
+
+        return socket_write($this->socket, $msg, strlen($msg));
+    }
+
+    protected function readSocket()
+    {
+        $buffer = '';
+        $overload = strlen('000000:000:000:');
+        do{
+            $buf = socket_read($this->socket, $overload + self::BLOCK_SIZE, PHP_BINARY_READ);
+            if($buf === false){
+                echo "socket_read() error: " . socket_strerror(socket_last_error($this->socket)) . "\n";
+                return -2;
+            }
+
+            if(!trim($buf)){
+                return '';
+            }
+
+            if(substr_count($buf, ":") < 3){
+                var_dump($buf);
+                die('error in format');
+            }
+            list($size, $block, $blocks)  = explode(":", $buf);
+            $aux = substr($buf, $overload);
+
+            if(self::DEBUG){
+                echo sprintf("%d/%d blocks (start of block %s)\n", $block, $blocks, substr($aux, 0, 10));
+            }
+
+            if($size == strlen($aux)){
+                $this->send(self::ACK);
+            }else{
+                $this->send(self::NO_ACK);
+                die(sprintf('error in size (block %d of %d): informed %d vs %d read', $block, $blocks, $size, strlen($aux)));
+            }
+
+            $buffer .= $aux;
+
+        }while($block < $blocks);
+
+        $result = lzf_decompress($buffer);
+
+        if(self::DEBUG){
+            $aux = json_decode($result, true);
+            if(isset($aux['data'])){
+                //var_dump($aux);
+                echo sprintf("received %d keys\n", count($aux['data']));
+            }
+        }
+
+        return $result;
+    }
+
     protected function callService($url, $data = array())
     {
         $data = array_merge(
@@ -142,10 +213,12 @@ class ClientSocketService
 
         $this->sendMessage($msg);
 
-        $buffer = trim(socket_read($this->socket, 1024 * 1024, PHP_NORMAL_READ));
-        //die("socket_read() falló: razón: " . socket_strerror(socket_last_error($this->socket )) . "\n");
+        $buffer = $this->readSocket();
+        //$buffer = trim(socket_read($this->socket, 1024 * 1024, PHP_NORMAL_READ));
 
-        print $buffer;
+        if(self::DEBUG){
+            print $buffer;
+        }
 
         $result = json_decode($buffer, true);
         //var_dump($result);
@@ -154,10 +227,6 @@ class ClientSocketService
             die;
         }
 
-        /*if(isset($result['status']) && !$result['status']){
-            die($result['reason']);
-        }*/
-        
         return $result;
     }
 
@@ -211,6 +280,21 @@ class ClientSocketService
 
         return $this->callService($this->url_plan['get_bundle_index'], array(
                 'project_id' => $projectId,
+            )
+        );
+    }
+
+    /**
+     * Get catalog index
+     *
+     * @param $projectId
+     *
+     * @return array
+     */
+    public function getCatalogIndex($projectId = null)
+    {
+        return $this->callService($this->url_plan['get_catalog_index'], array(
+                'project_id' => $projectId ?: $this->project_id,
             )
         );
     }
@@ -388,6 +472,15 @@ class ClientSocketService
                 'project_id' => $projectId,
                 'catalog'    => $catalog,
                 'data'       => $data,
+            )
+        );
+    }
+
+    public function downloadKeys($catalog, $projectId = null)
+    {
+        return $this->callService($this->url_plan['download_keys'], array(
+                'project_id' => $projectId ?: $this->project_id,
+                'catalog'    => $catalog,
             )
         );
     }

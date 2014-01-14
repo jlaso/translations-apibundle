@@ -83,6 +83,20 @@ class Translation
         $this->domain    = self::DEFAULT_DOMAIN;
     }
 
+    public static function newFromArray($catalog, $key, $locale, $data, $bundle = '', $file = '')
+    {
+        $trans = new Translation();
+        $trans->setKey($key);
+        $trans->setDomain($catalog);
+        $trans->setLocale($locale);
+        $trans->setMessage($data['message']);
+        $trans->setUpdatedAt(new \DateTime($data['updatedAt']['date'].$data['updatedAt']['timezone']));
+        $trans->setBundle($bundle);
+        $trans->setFile($file);
+
+        return $trans;
+    }
+
     public function getId() {
         return $this->id;
     }
