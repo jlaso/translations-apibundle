@@ -58,7 +58,7 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
         $this->addOption('address', null, InputArgument::OPTIONAL, 'address');
     }
 
-    protected function init($server = 'localhost', $port = 10000)
+    protected function init($server = null, $port = null)
     {
         /** @var EntityManager */
         $this->em         = $this->getContainer()->get('doctrine.orm.default_entity_manager');
@@ -78,7 +78,7 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
         $this->input    = $input;
         $this->output   = $output;
 
-        $this->init($input->getOption('address') ?: 'localhost',$input->getOption('port') ?: 10000);
+        $this->init($input->getOption('address'), $input->getOption('port'));
 
         $config         = $this->getContainer()->getParameter('translations_api');
         $managedLocales = $config['managed_locales'];

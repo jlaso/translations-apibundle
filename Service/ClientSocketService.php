@@ -28,6 +28,7 @@ class ClientSocketService
         }else{
             $baseUrl = str_replace('app_dev.php/', 'app_'.$environment.'.php/', $baseUrl);
         }
+        $this->base_url   = $baseUrl;
         $this->url_plan   = array_merge(array(
                 'get_bundle_index'         => 'bundle-index',
                 'get_key_index'            => 'key-index',
@@ -44,23 +45,31 @@ class ClientSocketService
         );
     }
 
-    public function init($address, $port)
+    public function init($address = null, $port = null)
     {
+        if(!$address && !$port){
+            $info = $this->createSocket();
+            usleep(600);
+
+            if(!$info['result']){
+                var_dump($info); die;
+            }
+            $address = $info['host'];
+            $port = $info['port'];
+        }
+
         if($this->init){
             socket_close($this->socket);
         }
 
-        /**
-         * conseguir un puerto
-         */
-        ob_implicit_flush();
-
         if (($this->socket  = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
-            echo "socket_create() falló: razón: " . socket_strerror(socket_last_error()) . "\n";
+            echo "socket_create() error: " . socket_strerror(socket_last_error()) . "\n";
         }
 
-        if (socket_connect($this->socket , $address, $port) === false) {
-            echo "socket_connect() falló: razón: " . socket_strerror(socket_last_error($this->socket )) . "\n";
+        echo sprintf("connecting %s port %d", $address, $port), PHP_EOL;
+
+        if (socket_connect($this->socket , trim($address), intval($port)) === false) {
+            echo "socket_connect() error: " . socket_strerror(socket_last_error($this->socket )) . "\n";
         }
 
 //        if (socket_listen($this->socket , 5) === false) {
@@ -70,7 +79,6 @@ class ClientSocketService
         print $out;
 
         $this->init = true;
-
     }
 
     function __destruct()
@@ -156,6 +164,38 @@ class ClientSocketService
     protected function shutdown()
     {
         return $this->callService($this->url_plan['shutdown']);
+    }
+
+    public function createSocket()
+    {
+        $url = $this->base_url . 'create-socket/' . $this->project_id;
+        $data = array(
+            'key'    => $this->api_key,
+            'secret' => $this->api_secret,
+        );
+        $postFields = json_encode($data);
+        $hdl = curl_init($url);
+        curl_setopt($hdl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($hdl, CURLOPT_HTTPHEADER, array('Accept: json'));
+        curl_setopt($hdl, CURLOPT_TIMEOUT, 10);
+        curl_setopt($hdl, CURLOPT_POST, true);
+        curl_setopt($hdl, CURLOPT_POSTFIELDS, $postFields);
+        curl_setopt($hdl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($hdl, CURLINFO_CONTENT_TYPE, 'application_json');
+        curl_setopt($hdl, CURLOPT_SSL_VERIFYPEER, false);
+
+        $body = curl_exec($hdl);
+        $info = curl_getInfo($hdl);
+        curl_close($hdl);
+        $result = json_decode($body, true);
+
+        if(!count($result)){
+            file_put_contents(dirname(__FILE__) . '/../../../../../../web/last-error.html',$body);
+            var_dump($info);
+            die;
+        }
+
+        return $result;
     }
 
     /**
