@@ -43,6 +43,9 @@ class ClientSocketService
                 'shutdown'                 => 'shutdown',
                 'upload_keys'              => 'upload-keys',
                 'download_keys'            => 'download-keys',
+                'transdoc_index'           => 'transdoc-index',
+                'transdoc_sync'            => 'transdoc-sync',
+                'transdoc_get'             => 'transdoc-get',
             ),
             isset($apiData['url_plan']) ? $apiData['url_plan'] : array()
         );
@@ -52,8 +55,7 @@ class ClientSocketService
     {
         if(!$address && !$port){
             $info = $this->createSocket();
-            /** wait 1/2 second */
-            usleep(500000);
+            //sleep(2);
 
             if(!$info['result']){
                 var_dump($info); die;
@@ -70,8 +72,7 @@ class ClientSocketService
             echo "socket_create() error: " . socket_strerror(socket_last_error()) . "\n";
         }
 
-        /** wait 1/2 second */
-        usleep(500000);
+        sleep(2);
 
         echo sprintf("connecting %s port %d", trim($address), intval($port)), PHP_EOL;
 
@@ -171,6 +172,8 @@ class ClientSocketService
 
             if(self::DEBUG){
                 echo sprintf("%d/%d blocks (start of block %s)\n", $block, $blocks, substr($aux, 0, 10));
+            }else{
+                echo 'R';
             }
 
             if($size == strlen($aux)){
@@ -483,6 +486,29 @@ class ClientSocketService
                 'catalog'    => $catalog,
             )
         );
+    }
+
+    public function transDocIndex($projectId = null)
+    {
+        return $this->callService($this->url_plan['transdoc_index'], array(
+                'project_id' => $projectId ?: $this->project_id,
+            )
+        );
+    }
+
+    public function transDocSync($bundle, $key, $locale, $transFile, $document, $updatedAt, $projectId = null)
+    {
+        return $this->callService($this->url_plan['transdoc_sync'], array(
+                'project_id'        => $projectId ? : $this->project_id,
+                'bundle'            => $bundle,
+                'key'               => $key,
+                'locale'            => $locale,
+                'file_name'         => $transFile,
+                'message'           => $document,
+                'last_modification' => $updatedAt,
+            )
+        );
+
     }
 
 }

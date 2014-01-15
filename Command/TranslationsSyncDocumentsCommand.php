@@ -24,13 +24,12 @@ use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Bundle\FrameworkBundle\Translation\Translator;
 
-
 /**
- * Sync translations files - translations server.
+ * Sync translations documents - translations server.
  *
  * @author Joseluis Laso <jlaso@joseluislaso.es>
  */
-class TranslationsSyncMongoCommand extends ContainerAwareCommand
+class TranslationsSyncDocumentsCommand extends ContainerAwareCommand
 {
     /** @var InputInterface */
     private $input;
@@ -40,8 +39,6 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
     private $em;
     /** @var ClientSocketService */
     private $clientApiService;
-    /** @var  TranslationRepository */
-    private $translationsRepository;
 
     private $rootDir;
 
@@ -52,23 +49,19 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
      */
     protected function configure()
     {
-        $this->setName('jlaso:translations:sync-mongo');
-        $this->setDescription('Sync all translations from translations server.');
+        $this->setName('jlaso:translations:sync-docs');
+        $this->setDescription('Sync all documents to and from translations server.');
         $this->addOption('port', null, InputArgument::OPTIONAL, 'port');
         $this->addOption('address', null, InputArgument::OPTIONAL, 'address');
-        $this->addOption('force', null, InputArgument::OPTIONAL, 'force=yes to upload our local DB to remote');
     }
 
     protected function init($server = null, $port = null)
     {
-        /** @var EntityManager */
-        $this->em         = $this->getContainer()->get('doctrine.orm.default_entity_manager');
         /** @var ClientSocketService $clientApiService */
         $clientApiService = $this->getContainer()->get('jlaso_translations.client.socket');
         $this->clientApiService = $clientApiService;
-        $this->translationsRepository = $this->em->getRepository('TranslationsApiBundle:Translation');
         $this->clientApiService->init($server, $port);
-        $this->rootDir = $this->getContainer()->get('kernel')->getRootDir();
+        $this->rootDir = dirname($this->getContainer()->get('kernel')->getRootDir());
     }
 
     /**
@@ -84,42 +77,92 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
         $config         = $this->getContainer()->getParameter('translations_api');
         $managedLocales = $config['managed_locales'];
 
-        $this->output->writeln(PHP_EOL . '<info>*** Syncing translations ***</info>');
+        $this->output->writeln(PHP_EOL . '<info>*** Syncing documents ***</info>');
 
-        if($input->getOption('force') == 'yes'){
+        $config         = $this->getContainer()->getParameter('jlaso_translations');
+        $managedLocales = $config['managed_locales'];
 
-            $catalogs = $this->translationsRepository->getCatalogs();
+        $finder = new Finder();
 
-            foreach($catalogs as $catalog){
+        $finder->files()->in($this->rootDir)->name('jlaso_translations.yml');
 
-                // data para enviar al servidor
-                $data = array();
+        $this->output->writeln($this->rootDir);
 
-                $this->output->writeln(PHP_EOL . sprintf('<info>Processing catalog %s ...</info>', $catalog));
+        $transDocs = array();
 
-                /** @var Translation[] $messages */
-                $messages = $this->translationsRepository->findBy(array('domain' => $catalog));
+        foreach ($finder as $file) {
+            $yml = $file->getRealpath();
+            $relativePath = $file->getRelativePath();
+            $fileName = $file->getRelativePathname();
+            $rules = Yaml::parse($yml);
+            //var_dump($rules);
+            if(preg_match('/\/(\w*)Bundle\//', $relativePath, $matches)){
 
-                foreach($messages as $message){
+                $bundle = $matches[1] . 'Bundle';
 
-                    $key = $message->getKey();
-                    $locale = $message->getLocale();
+            }else{
+                $bundle = "app*";
+            };
+            $this->output->writeln(PHP_EOL . $this->center($bundle));
 
-                    $data[$key][$locale] = array(
-                        'message'   => $message->getMessage(),
-                        'updatedAt' => $message->getUpdatedAt()->format('c'),
-                    );
+            if(isset($rules['files'])){
+
+                foreach($rules['files'] as $key=>$fileRule){
+
+                    foreach($managedLocales as $locale){
+
+                        $transFile = $relativePath . '/' . str_replace('%locale%', $locale, $fileRule);
+
+                        if(file_exists($transFile)){
+                            $this->output->writeln(sprintf('<info>Processing file "%s"</info>', $transFile));
+                            $result = $this->syncDoc($bundle, $key, $locale, $transFile);
+                        }else{
+                            $this->output->writeln(sprintf('<comment>File "%s" not found</comment>', $transFile));
+                            $result = $this->getDoc($bundle, $key, $locale, $transFile);
+                        }
+
+                    }
 
                 }
 
-                //print_r($data); die;
-                $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
-
-                $result = $this->clientApiService->uploadKeys($catalog, $data);
             }
         }
-        // truncate local translations table
-        $this->translationsRepository->truncateTranslations();
+
+
+        die('ok');
+
+
+
+        $catalogs = $this->translationsRepository->getCatalogs();
+
+        foreach($catalogs as $catalog){
+
+            // data para enviar al servidor
+            $data = array();
+
+            $this->output->writeln(PHP_EOL . sprintf('<info>Processing catalog %s ...</info>', $catalog));
+
+            /** @var Translation[] $messages */
+            $messages = $this->translationsRepository->findBy(array('domain' => $catalog));
+
+            foreach($messages as $message){
+
+                $key = $message->getKey();
+                $locale = $message->getLocale();
+
+                $data[$key][$locale] = array(
+                    'message'   => $message->getMessage(),
+                    'updatedAt' => $message->getUpdatedAt()->format('c'),
+                );
+
+            }
+
+            //print_r($data); die;
+            $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
+
+            $result = $this->clientApiService->uploadKeys($catalog, $data);
+        }
+
 
         $result = $this->clientApiService->getCatalogIndex();
 
@@ -160,6 +203,41 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
         exec("rm -rf ".$this->rootDir."/app/cache/*");
 
         $this->output->writeln('');
+    }
+
+    protected function syncDoc($bundle, $key, $locale, $transFile)
+    {
+        $fullFilePath = $this->rootDir . '/' . $transFile;
+        $document = file_get_contents($fullFilePath);
+        $updatedAt = \DateTime::createFromFormat('U',filemtime($fullFilePath))->format('c');
+
+        $result = $this->clientApiService->transDocSync($bundle, $key, $locale, $transFile, $document, $updatedAt);
+
+        if($result['result']){
+
+            if($result['updated']){
+
+            }else{
+
+                $updatedAt = new \DateTime($result['updatedAt']);
+                copy($fullFilePath, $fullFilePath . '.' . $updatedAt->format('hms'));
+                file_put_contents($fullFilePath, $result['message']);
+                touch($fullFilePath, $updatedAt->getTimestamp());
+
+            }
+
+        }else{
+            print_r($result); die;
+        }
+    }
+
+    protected function getDoc($bundle, $key, $locale, $transFile)
+    {
+        $fullFilePath = $this->rootDir . '/' . $transFile;
+        $document = ''; //file_get_contents($fullFilePath);
+        $updatedAt = null; //filemtime($fullFilePath);
+
+        //$this->
     }
 
     protected function center($text, $width = 120)
