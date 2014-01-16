@@ -90,6 +90,38 @@ class TranslationsDumpCommand extends ContainerAwareCommand
         return $bundles[count($bundles) - 1];
     }
 
+
+    /*
+     * Scans folders to find translations files and extract catalog by filename
+     */
+    protected function getLocalCatalogs()
+    {
+        $result = array();
+
+        $folders = array(
+            $this->srcDir,
+            dirname($this->srcDir) . '/app',
+        );
+
+        foreach($folders as $folder){
+            $finder = new Finder();
+            $finder->files()->in($folder)->name('/\w+\.\w+\.yml$/i');
+
+            foreach($finder as $file){
+                //$yml = $file->getRealpath();
+                //$relativePath = $file->getRelativePath();
+                $fileName = $file->getRelativePathname();
+
+                if(preg_match("/translations\/(\w+)\.(\w+)\.yml/i", $fileName, $matches)){
+                    $catalog = $matches[1];
+                    $result[$catalog] = null;
+                }
+            }
+        }
+
+        return array_keys($result);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -122,6 +154,8 @@ class TranslationsDumpCommand extends ContainerAwareCommand
         // adding a fake bundle to process translations from /app/Resources/translations
         $allBundles[self::APP_BUNDLE_KEY] = self::APP_BUNDLE_KEY;
 
+        $catalogs = $this->getLocalCatalogs();
+
         // proccess local keys
         foreach ($allBundles as $bundleName)  {
 
@@ -131,35 +165,37 @@ class TranslationsDumpCommand extends ContainerAwareCommand
 
                 $this->output->writeln(PHP_EOL . sprintf('· %s/%s', $bundleName, $locale));
 
-                if(self::APP_BUNDLE_KEY == $bundleName){
-                    $bundle = null;
-                    $filePattern = $this->srcDir . '../app/Resources/translations/messages.%s.yml';
-                }else{
-                    $bundle      = $this->getBundleByName($bundleName);
-                    $filePattern = $bundle->getPath() . '/Resources/translations/messages.%s.yml';
-                }
-
-                $fileName = sprintf($filePattern, $locale);
-
-                if(!file_exists($fileName)){
-                    $this->output->writeln(sprintf("· · <comment>File '%s' not found</comment>", $fileName));
-                }else{
-//                    $maxDate = new \DateTime(date('c',filemtime($fileName)));
-                    $hasChanged = false;
-                    $localKeys  = $this->getYamlAsArray($fileName);
-                    $this->output->writeln(sprintf("· · <info>Processing</info> '%s', found <info>%d</info> translations", $this->fileTrim($fileName), count($localKeys)));
-                    //$this->output->writeln(sprintf("\t|-- <info>getKeys</info> informs that there are %d keys ", count($remoteKeys)));
-
-                    foreach($localKeys as $localKey=>$message){
-
-                        $this->output->writeln(sprintf("\t|-- key %s:%s/%s ... ", $bundleName, $localKey, $locale));
-                        $this->updateOrInsertEntry($bundleName, $fileName, $localKey, $locale, $message);
+                foreach($catalogs as $catalog){
+                    if(self::APP_BUNDLE_KEY == $bundleName){
+                        $bundle = null;
+                        $filePattern = $this->srcDir . '../app/Resources/translations/%s.%s.yml';
+                    }else{
+                        $bundle      = $this->getBundleByName($bundleName);
+                        $filePattern = $bundle->getPath() . '/Resources/translations/%s.%s.yml';
                     }
 
-                }
+                    $fileName = sprintf($filePattern, $catalog, $locale);
 
-                //unlink($fileName);
-                $this->output->writeln('');
+                    if(!file_exists($fileName)){
+                        $this->output->writeln(sprintf("· · <comment>File '%s' not found</comment>", $fileName));
+                    }else{
+    //                    $maxDate = new \DateTime(date('c',filemtime($fileName)));
+                        $hasChanged = false;
+                        $localKeys  = $this->getYamlAsArray($fileName);
+                        $this->output->writeln(sprintf("· · <info>Processing</info> '%s', found <info>%d</info> translations", $this->fileTrim($fileName), count($localKeys)));
+                        //$this->output->writeln(sprintf("\t|-- <info>getKeys</info> informs that there are %d keys ", count($remoteKeys)));
+
+                        foreach($localKeys as $localKey=>$message){
+
+                            $this->output->writeln(sprintf("\t|-- key %s:%s/%s ... ", $bundleName, $localKey, $locale));
+                            $this->updateOrInsertEntry($bundleName, $fileName, $localKey, $locale, $message, $catalog);
+                        }
+
+                    }
+
+                    //unlink($fileName);
+                    $this->output->writeln('');
+                }
             }
         }
         $this->em->flush();
@@ -306,7 +342,7 @@ class TranslationsDumpCommand extends ContainerAwareCommand
      * @param \DateTime $updatedAt
      *
      */
-    protected function updateOrInsertEntry($bundleName, $file, $key, $locale, $content, \DateTime $updatedAt = null)
+    protected function updateOrInsertEntry($bundleName, $file, $key, $locale, $content, $catalog, \DateTime $updatedAt = null)
     {
         $shortFile  = str_replace($this->srcDir, '', $file);
         $shortFile  = str_replace('\/', '/', $shortFile);
@@ -326,10 +362,10 @@ class TranslationsDumpCommand extends ContainerAwareCommand
 
         $parts = explode(DIRECTORY_SEPARATOR, $shortFile);
         $filename = $parts[count($parts)-1];
-        $parts = explode(".", $filename);
-        $domain = $parts[0];
+//        $parts = explode(".", $filename);
+//        $domain = $parts[0];
 
-        $entry->setDomain($domain);
+        $entry->setDomain($catalog);
         $entry->setBundle($bundleName);
         $entry->setFile($shortFile);
         $entry->setKey($key);

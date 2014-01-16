@@ -102,8 +102,10 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
 
                 foreach($messages as $message){
 
-                    $key = $message->getKey();
-                    $locale = $message->getLocale();
+                    $key      = $message->getKey();
+                    $locale   = $message->getLocale();
+                    $bundle   = $message->getBundle();
+                    $fileName = $message->getFile();
 
                     $data[$key][$locale] = array(
                         'message'   => $message->getMessage(),
@@ -115,7 +117,7 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
                 //print_r($data); die;
                 $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
 
-                $result = $this->clientApiService->uploadKeys($catalog, $data);
+                $result = $this->clientApiService->uploadKeys($catalog, $data, $bundle, $fileName);
             }
         }
         // truncate local translations table
