@@ -10,6 +10,7 @@ use JLaso\TranslationsApiBundle\Entity\Translation;
 use JLaso\TranslationsApiBundle\Service\ClientApiService;
 use JLaso\TranslationsApiBundle\Service\ClientSocketService;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Helper\DialogHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
@@ -119,6 +120,18 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
 
                 $result = $this->clientApiService->uploadKeys($catalog, $data, $bundle, $fileName);
             }
+        }else{
+
+            /** @var DialogHelper $dialog */
+            $dialog = $this->getHelper('dialog');
+            if (!$dialog->askConfirmation(
+                $output,
+                '<question>The local DB will be erased, it is ok ?</question>',
+                false
+            )) {
+                die('Please, repeat the command with --force==yes in order to update remote DB with local changes');
+            }
+
         }
         // truncate local translations table
         $this->translationsRepository->truncateTranslations();
