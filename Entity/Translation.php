@@ -98,7 +98,7 @@ class Translation
         $trans->setLocale($locale);
         $trans->setMessage($data['message']);
         $trans->setUpdatedAt(self::dateTimeFromArray($data['updatedAt']));
-        $trans->setBundle($bundle);
+        $trans->setBundle($bundle ?: '');
         $trans->setFile($file);
 
         return $trans;

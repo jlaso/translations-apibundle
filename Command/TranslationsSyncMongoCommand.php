@@ -111,6 +111,8 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
                     $data[$key][$locale] = array(
                         'message'   => $message->getMessage(),
                         'updatedAt' => $message->getUpdatedAt()->format('c'),
+                        'fileName'  => $message->getFile(),
+                        'bundle'    => $message->getBundle(),
                     );
 
                 }
@@ -118,7 +120,7 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
                 //print_r($data); die;
                 $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
 
-                $result = $this->clientApiService->uploadKeys($catalog, $data, $bundle, $fileName);
+                $result = $this->clientApiService->uploadKeys($catalog, $data);
             }
         }else{
 
@@ -150,12 +152,14 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
 
             $result = $this->clientApiService->downloadKeys($catalog);
             //var_dump($result); die;
+            $bundles = $result['bundles'];
 
             foreach($result['data'] as $key=>$data){
                 foreach($data as $locale=>$messageData){
                     //$this->output->writeln(sprintf("\t|-- key %s:%s/%s ... ", $catalog, $key, $locale));
                     echo '.';
-                    $trans = Translation::newFromArray($catalog, $key, $locale, $messageData);
+                    $fileName = isset($messageData['fileName']) ? $messageData['fileName'] : '';
+                    $trans = Translation::newFromArray($catalog, $key, $locale, $messageData, $bundles[$key], $fileName);
                     $this->em->persist($trans);
                 }
             }

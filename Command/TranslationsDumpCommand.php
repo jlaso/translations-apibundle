@@ -177,9 +177,9 @@ class TranslationsDumpCommand extends ContainerAwareCommand
                     $fileName = sprintf($filePattern, $catalog, $locale);
 
                     if(!file_exists($fileName)){
-                        $this->output->writeln(sprintf("· · <comment>File '%s' not found</comment>", $fileName));
+                        //$this->output->writeln(sprintf("· · <comment>File '%s' not found</comment>", $fileName));
                     }else{
-    //                    $maxDate = new \DateTime(date('c',filemtime($fileName)));
+                        //                    $maxDate = new \DateTime(date('c',filemtime($fileName)));
                         $hasChanged = false;
                         $localKeys  = $this->getYamlAsArray($fileName);
                         $this->output->writeln(sprintf("· · <info>Processing</info> '%s', found <info>%d</info> translations", $this->fileTrim($fileName), count($localKeys)));
@@ -194,7 +194,7 @@ class TranslationsDumpCommand extends ContainerAwareCommand
                     }
 
                     //unlink($fileName);
-                    $this->output->writeln('');
+                    //$this->output->writeln('');
                 }
             }
         }

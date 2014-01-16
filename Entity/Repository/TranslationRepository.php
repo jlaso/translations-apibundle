@@ -39,7 +39,8 @@ class TranslationRepository extends EntityRepository
 
         try {
             $connection->query('SET FOREIGN_KEY_CHECKS=0');
-            $connection->query('DELETE FROM '.$cmd->getTableName());
+            $connection->query('TRUNCATE '.$cmd->getTableName());
+            //$connection->query('DELETE FROM '.$cmd->getTableName());
             // Beware of ALTER TABLE here--it's another DDL statement and will cause
             // an implicit commit.
             $connection->query('SET FOREIGN_KEY_CHECKS=1');

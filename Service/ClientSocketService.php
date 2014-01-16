@@ -465,7 +465,7 @@ class ClientSocketService
         );
     }
 
-    public function uploadKeys($catalog, $data, $bundle, $fileName, $projectId = null)
+    public function uploadKeys($catalog, $data, $projectId = null)
     {
         $projectId = $projectId ?: $this->project_id;
 
@@ -475,8 +475,6 @@ class ClientSocketService
                 'project_id' => $projectId,
                 'catalog'    => $catalog,
                 'data'       => $data,
-                'bundle'     => $bundle,
-                'file_name'  => $fileName,
             )
         );
     }
