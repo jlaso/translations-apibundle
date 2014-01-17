@@ -28,12 +28,15 @@ class TranslationsHelperCommand extends ContainerAwareCommand
 {
     const COMMENTS = 'comments';
     const CHARLIST = 'áéíóúñÑÁÉÍÓÚÄäËëÏïÜüçÇ';
+    const TXT_FORMAT = 'txt';
+    const CSV_FORMAT = 'csv';
 
     /** @var InputInterface */
     private $input;
     /** @var OutputInterface */
     private $output;
     private $srcDir;
+    private $format;
 
     const THROWS_EXCEPTION = true;
     /** fake key to process app/Resources/translations */
@@ -42,6 +45,14 @@ class TranslationsHelperCommand extends ContainerAwareCommand
     protected $outputFile;
     protected $originLang;
     protected $handler;
+
+    protected function getFormats()
+    {
+        return array(
+            self::TXT_FORMAT,
+            self::CSV_FORMAT,
+        );
+    }
 
     /**
      * {@inheritdoc}
@@ -53,7 +64,7 @@ class TranslationsHelperCommand extends ContainerAwareCommand
 
         $this->addArgument('origin', InputArgument::REQUIRED, 'Origin language.', null);
         $this->addArgument('output', InputArgument::REQUIRED, 'Output file name.', null);
-        //$this->addOption('force', 'f', InputOption::VALUE_NONE, 'Force import, replace database content.', null);
+        $this->addOption('format', null, InputOption::VALUE_OPTIONAL, 'Output format ('.implode(',',$this->getFormats()).')', null);
     }
 
     /**
@@ -79,7 +90,12 @@ class TranslationsHelperCommand extends ContainerAwareCommand
      */
     protected function getBundleByName($bundleName)
     {
-        return $this->getApplication()->getKernel()->getBundle($bundleName);
+        /** @var Kernel $kernel */
+        $kernel = $this->getApplication()->getKernel();
+
+        $bundles = $kernel->getBundle($bundleName, false);
+
+        return $bundles[count($bundles) - 1];
     }
 
     /**
@@ -98,31 +114,35 @@ class TranslationsHelperCommand extends ContainerAwareCommand
 
         $this->outputFile = $input->getArgument('output');
         $this->originLang = $input->getArgument('origin');
+        $this->format     = $input->getOption('format') ?: 'txt';
+        if(!in_array($this->format, $this->getFormats())){
+             throw new \Exception(sprintf('format %s not recognized', $this->format));
+        };
 
         $this->handler = fopen($this->outputFile, "w+");
 
         $this->output->writeln('<info>*** generating ...  ***</info>');
 
         $allLocalBundles = $this->getApplication()->getKernel()->getBundles();
-        $allBundles      = $this->bundles2array($allLocalBundles);
+        $allBundles      = array(); //$this->bundles2array($allLocalBundles);
 
         /** @var BundleInterface[] $allLocalBundles  */
         foreach($allLocalBundles as $bundle){
             // just added bundles that are within / src as the other are not responsible for their translations
             if(strpos($bundle->getPath(), $this->srcDir) === 0 ){
                 $allBundles[] = $bundle->getName();
+                //$this->output->writeln('Bundle ' . $bundle->getName());
             }
         };
 
         // adding a fake bundle to process translations from /app/Resources/translations
         $allBundles[] = self::APP_BUNDLE_KEY;
-        $count = 0;
-        $words = 0;
+        $localKeys = array();
 
         // doing a array with all the keys of all remote bundles
         // proccess local keys
         foreach($allBundles as $bundleName){
-            $this->output->writeln('<info>Bundle ' . $bundleName . ' . . .</info>');
+
             $locale = $this->originLang;
 
                 if(self::APP_BUNDLE_KEY == $bundleName){
@@ -134,20 +154,39 @@ class TranslationsHelperCommand extends ContainerAwareCommand
                 }
                 $fileName   = sprintf($filePattern, $locale);
 
-                if(!file_exists($fileName)){
-                    $this->output->writeln(sprintf('<comment>File "%s" not found</comment>', $fileName));
-                }else{
-                    $localKeys  = $this->getYamlAsArray($fileName);
-                    $count +=  count($localKeys);
-                    $this->output->writeln(sprintf('<info>Processing "%s", found %d translations</info>', $fileName, count($localKeys)));
-                    fwrite($this->handler, implode(PHP_EOL, $localKeys) . PHP_EOL);
-                    $words += str_word_count(implode(" ", $localKeys), 0, self::CHARLIST);
+                if(file_exists($fileName)){
+                    $auxKeys = $this->getYamlAsArray($fileName);
+                    $this->output->writeln('<info>Bundle ' . $bundleName . ' . . .</info>');
+                    $this->output->writeln(sprintf('<info>Processing "%s", found %d translations</info>', $fileName, count($auxKeys)));
+                    $localKeys = array_merge($localKeys, $auxKeys);
                 }
+        }
+
+        switch($this->format)
+        {
+            case self::TXT_FORMAT:
+                fwrite($this->handler, implode(PHP_EOL, $localKeys) . PHP_EOL);
+                break;
+
+            case self::CSV_FORMAT:
+                $raw = '';
+                foreach($localKeys as $key=>$data){
+                    $data = str_replace('"', '\"', $data);
+                    $raw .= sprintf('"%s","%s"'.PHP_EOL, $key, $data);
+                }
+                fwrite($this->handler, $raw);
+                break;
+
+            default:
+                throw new \Exception(sprintf('format %s not recognized', $this->format));
+
         }
 
         fclose($this->handler);
 
-        $this->output->writeln(sprintf('found %d keys in total', $count));
+        $words = str_word_count(implode(" ", $localKeys), 0, self::CHARLIST);
+
+        $this->output->writeln(sprintf('found %d keys in total', count($localKeys)));
         $this->output->writeln(sprintf('found %d words in total', $words));
     }
 
