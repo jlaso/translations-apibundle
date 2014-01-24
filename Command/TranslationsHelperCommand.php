@@ -26,10 +26,11 @@ use Symfony\Component\Yaml\Yaml;
  */
 class TranslationsHelperCommand extends ContainerAwareCommand
 {
-    const COMMENTS = 'comments';
-    const CHARLIST = 'áéíóúñÑÁÉÍÓÚÄäËëÏïÜüçÇ';
-    const TXT_FORMAT = 'txt';
-    const CSV_FORMAT = 'csv';
+    const COMMENTS    = 'comments';
+    const CHARLIST    = 'áéíóúñÑÁÉÍÓÚÄäËëÏïÜüçÇ';
+    const TXT_FORMAT  = 'txt';
+    const CSV_FORMAT  = 'csv';
+    const CSV2_FORMAT = 'csv2';
 
     /** @var InputInterface */
     private $input;
@@ -46,11 +47,14 @@ class TranslationsHelperCommand extends ContainerAwareCommand
     protected $originLang;
     protected $handler;
 
+    protected $labels;
+
     protected function getFormats()
     {
         return array(
-            self::TXT_FORMAT,
-            self::CSV_FORMAT,
+            self::TXT_FORMAT   => 'plain text',
+            self::CSV_FORMAT   => 'csv format',
+            self::CSV2_FORMAT  => 'csv with html labels minified',
         );
     }
 
@@ -115,7 +119,8 @@ class TranslationsHelperCommand extends ContainerAwareCommand
         $this->outputFile = $input->getArgument('output');
         $this->originLang = $input->getArgument('origin');
         $this->format     = $input->getOption('format') ?: 'txt';
-        if(!in_array($this->format, $this->getFormats())){
+        $formats =  $this->getFormats();
+        if(!isset($formats[$this->format])){
              throw new \Exception(sprintf('format %s not recognized', $this->format));
         };
 
@@ -168,10 +173,40 @@ class TranslationsHelperCommand extends ContainerAwareCommand
                 fwrite($this->handler, implode(PHP_EOL, $localKeys) . PHP_EOL);
                 break;
 
+            case self::CSV2_FORMAT:
+                $raw = '';
+                foreach($localKeys as $key=>$data){
+                    if(preg_match_all("|(</?[^<]*>)|i", $data, $matches)){
+                        foreach($matches[1] as $match){
+                            if(!isset($this->labels[$match])){
+                                $this->labels[$match] = sprintf("[%d]", count($this->labels) + 1);
+                            }
+                            $subst = $this->labels[$match];
+                            $data = str_replace($match, $subst, $data);
+                        }
+                    }
+                    if(preg_match_all("|(\%([^%]*)\%)|i", $data, $matches, PREG_SET_ORDER)){
+                        foreach($matches as $match){
+                            $varName = $match[2];
+                            $textVar = $match[1];
+                            if(!isset($this->labels[$varName])){
+                                $this->labels[$textVar] = sprintf("(%d)", count($this->labels) + 1);
+                            }
+                            $subst = $this->labels[$textVar];
+                            $subst = sprintf("%s%s%s", $subst, $varName, $subst);
+                            $data = str_replace($textVar, $subst, $data);
+                        }
+                    }
+                    $data = $this->clean($data);
+                    $raw .= sprintf('"%s","%s"'.PHP_EOL, $key, $data);
+                }
+                fwrite($this->handler, $raw);
+                break;
+
             case self::CSV_FORMAT:
                 $raw = '';
                 foreach($localKeys as $key=>$data){
-                    $data = str_replace('"', '\"', $data);
+                    $data = $this->clean($data);
                     $raw .= sprintf('"%s","%s"'.PHP_EOL, $key, $data);
                 }
                 fwrite($this->handler, $raw);
@@ -188,9 +223,33 @@ class TranslationsHelperCommand extends ContainerAwareCommand
 
         $this->output->writeln(sprintf('found %d keys in total', count($localKeys)));
         $this->output->writeln(sprintf('found %d words in total', $words));
+
+        if($this->format == self::CSV2_FORMAT){
+            $this->output->writeln(sprintf('minified %d html labels in total', count($this->labels)));
+            file_put_contents($this->outputFile . '.json', json_encode($this->labels));
+            file_put_contents($this->outputFile . '.raw', print_r($this->labels, true));
+    }
     }
 
 
+    /**
+     * clean data replacing typographic commas and escaping doubles commas
+     *
+     * @param string $data
+     *
+     * @return string
+     */
+    protected function clean($data)
+    {
+        $data = str_replace(
+            array(
+                '”','‘','’','´','“','€',"\r","\n",
+            ),array(
+                '"',"'","'","'",'"','&euro;','','',
+            ),$data);
+
+        return str_replace('"', '""', $data);
+    }
 
     /**
      * @param BundleInterface[] $bundles
