@@ -2,7 +2,12 @@
 Overview
 ========
 
-This bundle permits API comunication with http://translations.com.es
+This bundle permits API comunication with https://translations.com.es
+
+In order to install this bundle you need to pay attention with requiremens:
+php > 5.3
+and php-lzf extension must be installed (try sudo pecl install lxf)
+
 
 Installation
 ------------
