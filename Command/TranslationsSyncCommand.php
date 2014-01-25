@@ -31,7 +31,7 @@ use Symfony\Bundle\FrameworkBundle\Translation\Translator;
  *
  * @author Joseluis Laso <jlaso@joseluislaso.es>
  */
-class TranslationsSyncMongoCommand extends ContainerAwareCommand
+class TranslationsSyncCommand extends ContainerAwareCommand
 {
     /** @var InputInterface */
     private $input;
@@ -53,11 +53,11 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
      */
     protected function configure()
     {
-        $this->setName('jlaso:translations:sync-mongo');
+        $this->setName('jlaso:translations:sync');
         $this->setDescription('Sync all translations from translations server.');
         $this->addOption('port', null, InputArgument::OPTIONAL, 'port');
         $this->addOption('address', null, InputArgument::OPTIONAL, 'address');
-        $this->addOption('force', null, InputArgument::OPTIONAL, 'force=yes to upload our local DB to remote');
+        $this->addOption('upload-first', null, InputArgument::OPTIONAL, '--upload-first=yes to upload our local DB to remote first of all');
     }
 
     protected function init($server = null, $port = null)
@@ -87,7 +87,7 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
 
         $this->output->writeln(PHP_EOL . '<info>*** Syncing translations ***</info>');
 
-        if($input->getOption('force') == 'yes'){
+        if($input->getOption('upload-first') == 'yes'){
 
             $catalogs = $this->translationsRepository->getCatalogs();
 
@@ -176,7 +176,18 @@ class TranslationsSyncMongoCommand extends ContainerAwareCommand
         /** @var Translator $translator */
         //$translator = $this->getContainer()->get('translator');
         //$translator->removeLocalesCacheFiles($managedLocales);
-        exec("rm -rf ".$this->rootDir."/app/cache/*");
+        //exec("rm -rf ".$this->rootDir."/app/cache/*");
+        $finder = new Finder();
+        $finder->files()->in($this->rootDir . "/cache")->name('/catalogue\./i');
+
+        foreach($finder as $file){
+            $fileFull = $file->getRealpath();
+            //$relativePath = $file->getRelativePath();
+            $fileName = $file->getRelativePathname();
+            $this->output->writeln('removing ' . $fileName);
+
+            unlink($file);
+        }
 
         $this->output->writeln('');
     }

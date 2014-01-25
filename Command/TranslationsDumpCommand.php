@@ -133,6 +133,9 @@ class TranslationsDumpCommand extends ContainerAwareCommand
 
         $config         = $this->getContainer()->getParameter('translations_api');
         $managedLocales = $config['managed_locales'];
+        if(!count($managedLocales)){
+            die('not found managed locales' . PHP_EOL);
+        }
         $managedLocales[] = self::COMMENTS;
         //$apiConfig      = $this->getContainer()->getParameter('jlaso_translations_api_access');
 
