@@ -9,14 +9,6 @@ Installation
 Checkout a copy of the code::
 
     // in composer.json
-    "repositories": [
-        // ...
-        {
-            "type": "vcs",
-            "url": "https://jlaso@bitbucket.org/jlaso/translations-apibundle.git"
-        }
-        // ...
-    ],
     "require": {
         // ...
         "jlaso/translations-apibundle": "*"
