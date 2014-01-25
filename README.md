@@ -4,14 +4,15 @@ Overview
 
 This bundle permits API comunication with https://translations.com.es
 
-In order to install this bundle you need to pay attention with requiremens:
-php > 5.3
-and php-lzf extension must be installed (try sudo pecl install lxf)
+In order to install this bundle you need to pay attention with requiremens: 
+
+    php > 5.3
+    php-lzf extension must be installed (try sudo pecl install lzf)
 
 
 Installation
 ------------
-Checkout a copy of the code::
+Checkout a copy of the code:
 
     // in composer.json
     "require": {
@@ -21,7 +22,7 @@ Checkout a copy of the code::
     },
 
 
-Then register the bundle with your kernel::
+Then register the bundle with your kernel:
 
     // in AppKernel::registerBundles()
     $bundles = array(
@@ -33,7 +34,6 @@ Then register the bundle with your kernel::
 
 Configuration
 -------------
-::
 
 
     // in app/config/parameters.yml
@@ -60,20 +60,23 @@ Configuration
 Usage
 -----
 first schema:update to init database with SCM table:
-::
-    app/console doctrine:schema:update --force --env=dev
 
+    app/console doctrine:schema:update --force --env=dev
+    
+and next upload your messages to remote server
+
+    app/console jlaso:translations:sync --upload-first=yes
+    when you use the bundle first time is necessary the use the upload-first option in order to generate the remote db
 
 Examples
 --------
 For synchronize local translations with server (remote) translations:
-::
+
     app/console jlaso:translations:sync [--cache-clear] [--backup-files]
 
 In the view
-::
-    Currently only be used yaml files in src/Company/xxBundle/Resource/translations/messages.xx.yml
-    with xx as locale, and comments for remarks to help translations in web interface,
-    this is src/Company/xxBundle/Resource/translations/messages.comments.yml
+
+    Currently only be used yaml files in src/Company/bbbBundle/Resource/translations/messages.xx.yml
+    with xx as locale, and bbb as bundle name,
     same for translations resources of app located at app/Resources/messages.xx.yml
 
