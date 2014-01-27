@@ -22,6 +22,7 @@ class PdoLoader implements LoaderInterface, ResourceInterface
             'domain'     => 'domain',
             'updated_at' => 'updated_at',
         ),
+        'blank' => 'key',
     );
 
     protected $freshnessStatement;
@@ -32,6 +33,9 @@ class PdoLoader implements LoaderInterface, ResourceInterface
     {
         $this->con     = $entityManager->getConnection();
         $this->options = array_replace_recursive($this->options, $options);
+        if(isset($options['blank']) && ($options['blank'] == 'key')){
+            $this->con->exec("update `jlaso_translations` set `message` = `key` where message = ''");
+        }
     }
 
     /**
