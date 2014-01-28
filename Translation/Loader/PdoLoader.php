@@ -33,8 +33,8 @@ class PdoLoader implements LoaderInterface, ResourceInterface
     {
         $this->con     = $entityManager->getConnection();
         $this->options = array_replace_recursive($this->options, $options);
-        if(isset($options['blank']) && ($options['blank'] == 'key')){
-            $this->con->exec("update `jlaso_translations` set `message` = `key` where message = ''");
+        if(isset($this->options['blank']) && ($this->options['blank'] == 'key')){
+            $this->con->exec("update `jlaso_translations` set `message` = `key` where message = \"\"");
         }
     }
 
