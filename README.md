@@ -1,3 +1,6 @@
+[![Latest Stable Version](https://poser.pugx.org/jlaso/translations-apibundle/v/stable.png)](https://packagist.org/packages/jlaso/translations-apibundle)
+[![Total Downloads](https://poser.pugx.org/jlaso/translations-apibundle/downloads.png)](https://packagist.org/packages/jlaso/translations-apibundle)
+
 ========
 Overview
 ========
