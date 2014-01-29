@@ -3,12 +3,11 @@
 namespace JLaso\TranslationsApiBundle\Command;
 
 use Doctrine\ORM\EntityManager;
-use JLaso\TranslationsApiBundle\Entity\Repository\SCMRepository;
 use JLaso\TranslationsApiBundle\Entity\Repository\TranslationRepository;
-use JLaso\TranslationsApiBundle\Entity\SCM;
 use JLaso\TranslationsApiBundle\Entity\Translation;
 use JLaso\TranslationsApiBundle\Service\ClientApiService;
 use JLaso\TranslationsApiBundle\Service\ClientSocketService;
+use JLaso\TranslationsApiBundle\Tools\ArrayTools;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Helper\DialogHelper;
 use Symfony\Component\Console\Input\InputArgument;
@@ -20,8 +19,6 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\Translation\MessageCatalogueInterface;
-use Symfony\Component\Yaml\Inline;
-use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Bundle\FrameworkBundle\Translation\Translator;
 
@@ -58,6 +55,7 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         $this->addOption('port', null, InputArgument::OPTIONAL, 'port');
         $this->addOption('address', null, InputArgument::OPTIONAL, 'address');
         $this->addOption('upload-first', null, InputArgument::OPTIONAL, '--upload-first=yes to upload our local DB to remote first of all');
+        $this->addOption('yml', null, InputArgument::OPTIONAL, '--yml=regenerate to regenerate local .yml files from remote DB');
     }
 
     protected function init($server = null, $port = null)
@@ -87,6 +85,9 @@ class TranslationsSyncCommand extends ContainerAwareCommand
 
         $this->output->writeln(PHP_EOL . '<info>*** Syncing translations ***</info>');
 
+        /**
+         * uploading local catalog keys (from local table) to remote server
+         */
         if($input->getOption('upload-first') == 'yes'){
 
             $catalogs = $this->translationsRepository->getCatalogs();
@@ -135,6 +136,11 @@ class TranslationsSyncCommand extends ContainerAwareCommand
             }
 
         }
+
+        /**
+         * download the remote catalogs and integrate into local table (previously truncate local table)
+         */
+
         // truncate local translations table
         $this->translationsRepository->truncateTranslations();
 
@@ -168,10 +174,76 @@ class TranslationsSyncCommand extends ContainerAwareCommand
 
         }
 
-        $this->output->writeln(PHP_EOL . sprintf('<info>Flushing to DB ...</info>', $catalog));
+        $this->output->writeln(PHP_EOL . '<info>Flushing to DB ...</info>');
 
         $this->em->flush();
 
+        /**
+         * regeneration of local .yml files if user wants
+         */
+
+        /** @var DialogHelper $dialog */
+        $dialog = $this->getHelper('dialog');
+
+        if(($input->getOption('yml') == 'regenerate') ||
+            ($dialog->askConfirmation($output,'<question>Do want to regenerate local .yml files ?</question>',false)))
+        {
+
+            $bundles = $this->translationsRepository->getBundles();
+
+            foreach($bundles as $bundle){
+
+                if(!$bundle){
+                    continue;
+                }
+                $keys = array();
+                $filenames = array();
+                $scheme = ""; // in order to deduce filename from other keys
+
+                $translations = $this->translationsRepository->getKeysByBundle($bundle);
+                foreach($translations as $translation){
+
+                    $locale = $translation->getLocale();
+                    $file = $translation->getFile();
+                    if($file && $locale && !$scheme){
+                        $scheme = str_replace(".{$locale}.", ".%s.", $file);
+                        break;
+                    }
+                }
+
+                foreach($translations as $translation){
+
+                    $locale = $translation->getLocale();
+                    $file = $translation->getFile();
+                    if($locale && !$file && $scheme){
+                        $file = sprintf($scheme, $locale);
+                    }
+                    if($file && $locale){
+                        if(!isset($filenames[$locale])){
+                            $filenames[$locale] = $file;
+                        }
+                        $keys[$locale][$translation->getKey()] = $translation->getMessage();
+                    }
+                }
+
+                foreach($filenames as $locale=>$file){
+
+                    $subKeys = $keys[$locale];
+                    $this->output->writeln(sprintf('Generating <info>"%s"</info> ...', $file));
+                    $file = dirname($this->rootDir) . '/src/' . $file;
+                    if(file_exists($file)){
+                        copy($file, $file . '.' . date('U'));
+                    }
+                    file_put_contents($file, ArrayTools::prettyYamlDump($subKeys));
+                }
+
+            }
+
+        }
+
+        /**
+         * erasing cached translations files
+         */
         $this->output->writeln(PHP_EOL . '<info>Clearing SF cache ...</info>');
         /** @var Translator $translator */
         //$translator = $this->getContainer()->get('translator');

@@ -5,7 +5,9 @@ namespace JLaso\TranslationsApiBundle\Command;
 use Doctrine\ORM\EntityManager;
 use JLaso\TranslationsApiBundle\Entity\Repository\TranslationRepository;
 use JLaso\TranslationsApiBundle\Entity\Translation;
+use JLaso\TranslationsApiBundle\Tools\ArrayTools;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Helper\DialogHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
@@ -53,7 +55,7 @@ class TranslationsDumpCommand extends ContainerAwareCommand
 
         $this->addOption('cache-clear', 'c', InputOption::VALUE_NONE, 'Remove translations cache files for managed locales.', null);
         $this->addOption('backup-files', 'b', InputOption::VALUE_NONE, 'Makes a backup of yaml files updated.', null);
-        //$this->addOption('force', 'f', InputOption::VALUE_NONE, 'Force import, replace database content.', null);
+        $this->addOption('force', null, InputOption::VALUE_OPTIONAL, 'Force replace local database content.', null);
     }
 
     /**
@@ -131,6 +133,21 @@ class TranslationsDumpCommand extends ContainerAwareCommand
         $this->output   = $output;
         $this->init();
 
+        if($input->getOption('force')!='yes'){
+            /** @var DialogHelper $dialog */
+            $dialog = $this->getHelper('dialog');
+            if (!$dialog->askConfirmation(
+                $output,
+                '<question>The local DB will be erased, it is ok ?</question>',
+                false
+            )) {
+                die('Please, repeat the command with --force==yes in order to update remote DB with local changes');
+            }
+        }
+
+        // truncate local translations table
+        $this->translationRepository->truncateTranslations();
+
         $config         = $this->getContainer()->getParameter('translations_api');
         $managedLocales = $config['managed_locales'];
         if(!count($managedLocales)){
@@ -166,7 +183,7 @@ class TranslationsDumpCommand extends ContainerAwareCommand
 
             foreach($managedLocales as $locale){
 
-                $this->output->writeln(PHP_EOL . sprintf('· %s/%s', $bundleName, $locale));
+                $this->output->writeln(sprintf('· %s/%s', $bundleName, $locale));
 
                 foreach($catalogs as $catalog){
                     if(self::APP_BUNDLE_KEY == $bundleName){
@@ -201,6 +218,8 @@ class TranslationsDumpCommand extends ContainerAwareCommand
                 }
             }
         }
+
+        $this->output->writeln(PHP_EOL . '<info>Flushing to DB ...</info>');
         $this->em->flush();
 
         if ($this->input->getOption('cache-clear')) {
@@ -211,6 +230,14 @@ class TranslationsDumpCommand extends ContainerAwareCommand
         $this->output->writeln('');
     }
 
+    /**
+     * pretty center a message on the screen
+     *
+     * @param string $text
+     * @param int    $width
+     *
+     * @return string
+     */
     protected function center($text, $width = 120)
     {
         $len = strlen($text);
@@ -224,69 +251,16 @@ class TranslationsDumpCommand extends ContainerAwareCommand
         }
     }
 
+    /**
+     * removes the system path to project in order to archive only the relative path
+     *
+     * @param string $fileName
+     *
+     * @return string
+     */
     protected function fileTrim($fileName)
     {
         return str_replace(dirname($this->srcDir), '', $fileName);
-    }
-
-    /**
-     * Dumps a message translations array to yaml file
-     *
-     * @param string $file
-     * @param array $keys
-     */
-    protected function dumpYaml($file, $keys)
-    {
-        if($this->input->getOption('cache-clear') && file_exists($file)){
-            // backups the file
-            copy($file, $file . '.' . date('d-m-H-i'). '.bak');
-        }
-        if(!is_dir(dirname($file))){
-            // the dir not exists
-            mkdir(dirname($file), 0777, true);
-        }
-        $this->output->writeln(sprintf("\t|-- <info>saving file</info> '%s'", $this->fileTrim($file)));
-        file_put_contents($file, Yaml::dump($this->k2a($keys), 100));
-        //touch($fileName, $maxDate->format('U'));
-    }
-
-    /**
-     * @param BundleInterface[] $bundles
-     * @return array
-     */
-    protected function bundles2array($bundles)
-    {
-        $result = array();
-        foreach($bundles as $bundle){
-            $result[$bundle->getName()] = $bundle->getName();
-        }
-
-        //array_combine($bundles, $bundles);
-
-        return $result;
-    }
-
-
-    /**
-     * associative array indexed to dimensional associative array of keys
-     *
-     * @param $dest
-     * @param $orig
-     * @param $currentKey
-     */
-    protected function a2k(&$dest, $orig, $currentKey)
-    {
-        if(is_array($orig) && (count($orig)>0)){
-            foreach($orig as $key=>$value){
-                if(is_array($value)){
-                    $this->a2k($dest, $value, ($currentKey ? $currentKey . '.' : '') . $key);
-                }else{
-                    $dest[($currentKey ? $currentKey . '.' : '') . $key] = $value;
-                    //$tmp = explode('.', $currentKey);
-                    //$currentKey = implode('.', array_pop($tmp));
-                }
-            }
-        }
     }
 
     /**
@@ -299,41 +273,10 @@ class TranslationsDumpCommand extends ContainerAwareCommand
     protected function getYamlAsArray($file)
     {
         if(file_exists($file)){
-            $content = Yaml::parse(file_get_contents($file));
-            $result  = array();
-            $this->a2k($result, $content, '');
-
-            return $result;
-        }else{
-            return array();
-        }
-    }
-
-    /**
-     * dimensional associative array of keys to associative array indexed
-     *
-     * @param $orig
-     *
-     * @return array
-     */
-    protected function k2a($orig)
-    {
-        $result = array();
-        foreach($orig as $key=>$value){
-            if($value===null){
-
-            }else{
-                $keys = explode('.',$key);
-                $node = $value;
-                for($i = count($keys); $i>0; $i--){
-                    $k = $keys[$i-1];
-                    $node = array($k => $node);
-                }
-                $result = array_merge_recursive($result, $node);
-            }
+            return ArrayTools::YamlToKeyedArray(file_get_contents($file));
         }
 
-        return $result;
+        return array();
     }
 
     /**
@@ -342,8 +285,8 @@ class TranslationsDumpCommand extends ContainerAwareCommand
      * @param string    $key
      * @param string    $locale
      * @param string    $content
+     * @param string    $catalog
      * @param \DateTime $updatedAt
-     *
      */
     protected function updateOrInsertEntry($bundleName, $file, $key, $locale, $content, $catalog, \DateTime $updatedAt = null)
     {
@@ -353,21 +296,13 @@ class TranslationsDumpCommand extends ContainerAwareCommand
         /** @var Translation $entry */
         $entry = $this->translationRepository->findOneBy(array(
                 'domain' => $bundleName,
-                //'file'   => $filename,
                 'key'    => $key,
                 'locale' => $locale,
             )
         );
-
-        if(!$entry instanceof Translation){
+        if(!$entry){
             $entry = new Translation();
         }
-
-        $parts = explode(DIRECTORY_SEPARATOR, $shortFile);
-        $filename = $parts[count($parts)-1];
-//        $parts = explode(".", $filename);
-//        $domain = $parts[0];
-
         $entry->setDomain($catalog);
         $entry->setBundle($bundleName);
         $entry->setFile($shortFile);
@@ -376,8 +311,6 @@ class TranslationsDumpCommand extends ContainerAwareCommand
         $entry->setUpdatedAt($mod);
         $entry->setLocale($locale);
         $this->em->persist($entry);
-        //$this->em->flush();
-
     }
 
 }
