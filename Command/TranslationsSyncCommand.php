@@ -84,13 +84,17 @@ class TranslationsSyncCommand extends ContainerAwareCommand
             'backup'     => false,
             'blank'      => false,
         );
-        $aux = explode(",", $this->input->getOption('yml'));
-        if(count($aux)){
-            foreach($aux as $option){
-                $ymlOptions[$option] = true;
+        $yml = $this->input->getOption('yml');
+        if($yml){
+            $aux = explode(",", $yml);
+            if(count($aux)){
+                foreach($aux as $option){
+                    $ymlOptions[$option] = true;
+                }
             }
         }
         if(count($ymlOptions) != 3){
+            var_dump($ymlOptions);
             die('Sorry, but you can use only regenerate,blank and backup with --yml option');
         }
 
