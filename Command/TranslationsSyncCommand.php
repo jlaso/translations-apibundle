@@ -277,7 +277,7 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         //$translator->removeLocalesCacheFiles($managedLocales);
         //exec("rm -rf ".$this->rootDir."/app/cache/*");
         $finder = new Finder();
-        $finder->files()->in($this->rootDir . "/cache")->name('/catalogue\./i');
+        $finder->files()->in($this->rootDir . "/cache")->name('*');
 
         foreach($finder as $file){
             $fileFull = $file->getRealpath();
