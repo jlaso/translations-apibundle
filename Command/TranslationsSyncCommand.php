@@ -272,10 +272,6 @@ class TranslationsSyncCommand extends ContainerAwareCommand
          * erasing cached translations files
          */
         $this->output->writeln(PHP_EOL . '<info>Clearing SF cache ...</info>');
-        /** @var Translator $translator */
-        //$translator = $this->getContainer()->get('translator');
-        //$translator->removeLocalesCacheFiles($managedLocales);
-        //exec("rm -rf ".$this->rootDir."/app/cache/*");
 
         $finder = new Finder();
         $finder->files()->in($this->rootDir . "/cache")->name('*');
