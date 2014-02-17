@@ -276,6 +276,7 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         //$translator = $this->getContainer()->get('translator');
         //$translator->removeLocalesCacheFiles($managedLocales);
         //exec("rm -rf ".$this->rootDir."/app/cache/*");
+
         $finder = new Finder();
         $finder->files()->in($this->rootDir . "/cache")->name('*');
 
@@ -283,9 +284,10 @@ class TranslationsSyncCommand extends ContainerAwareCommand
             $fileFull = $file->getRealpath();
             //$relativePath = $file->getRelativePath();
             $fileName = $file->getRelativePathname();
-            $this->output->writeln('removing ' . $fileName);
-
-            unlink($file);
+            if(preg_match('!/translations/.+$!i', $fileName)){
+                $this->output->writeln('removing ' . $fileName);
+                unlink($file);
+            }
         }
 
         $this->output->writeln('');
