@@ -1,0 +1,304 @@
+commit a00aa6303c76811d50115c562e7202c0440469e1
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Mon Feb 17 11:45:14 2014 +0100
+
+    - removed unused code
+
+commit 8ca4299db0820cb92b356f625663f6416c6fff93
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Mon Feb 17 11:39:15 2014 +0100
+
+    - fix cache files to remove
+
+commit 674e27f95520b6cf4281aa8c474c2e4066173bdc
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Wed Feb 12 11:03:16 2014 +0100
+
+    - erases all the files in the translations cache folder when finish syncs
+
+commit ec5ba5e4e5f8485a295602e3289e91f957327533
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Wed Feb 12 09:29:33 2014 +0100
+
+    - configuration of bundle in order to leave messages blank or with keyname,
+      and fix yml regeneration option in sync command
+
+commit 63d67dba8211830111adc76f821f62adffd30325
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Tue Feb 4 14:56:15 2014 +0100
+
+    - added new functionality to pdoloader in order to
+      recreate catalog
+
+commit b3a7790c68b0709d52fb2ab624cb0a24dff585b1
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Wed Jan 29 18:08:54 2014 +0100
+
+    - new posibilities on syn command, now you can regenerate yml
+
+commit 0d889878521e3bc23a63f646c68b9f9195fdcfab
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Wed Jan 29 13:10:16 2014 +0100
+
+    - Refactor dump command, now sync command can regenerate yml files
+
+commit 0610bed7ff0c1140c0a068f75d2e35e80d8a030c
+Author: Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Tue Jan 28 22:32:07 2014 +0100
+
+    - added badgets to show downloads and version
+
+commit 54d7f249bea2982905c44f7e4c8157825df633cc
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Tue Jan 28 14:56:12 2014 +0100
+
+    - adjust the creation of local keys with no message with the
+      key as the content of message.
+
+commit e44989e97f38922853af930b54dac9ecd50b221f
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Mon Jan 27 13:48:45 2014 +0100
+
+    - message blank = key
+
+commit 9ded37cd45fd8411b6e4eaf9b91c6dbf9001ddee
+Author: Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Mon Jan 27 10:15:55 2014 +0100
+
+    - remove lib-lzf because my mac not recognizes it
+    
+    Is necessary to install this extension in php with sudo pecl install lzf
+
+commit 0a2d3d72f3d817d7c03f44a3bdcec62ab993c6e1
+Author: Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Mon Jan 27 10:11:32 2014 +0100
+
+    - change lzf requirement in composer.json
+
+commit 1ced2dbdcec84d02adeec3e3e372b0e398d1eba2
+Author: Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Sat Jan 25 11:57:51 2014 +0100
+
+    - fix markdown in READM
+
+commit 3c74700d1a43cf8f5b966253f6d4ebe777e14424
+Author: Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Sat Jan 25 11:45:22 2014 +0100
+
+    - I clarify the requirements in README
+
+commit 6a8e78da08005bf06e28a7afd18187b6bb983e71
+Author: Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Sat Jan 25 08:11:32 2014 +0100
+
+    - since this bundle is in packagist
+    
+    no need to indicate remote location
+
+commit 6e051a24ea8e1ddd6d7b834f3178f6089e002223
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sat Jan 25 08:03:49 2014 +0100
+
+    - change the name of the main command and remove translations files
+
+commit 8e530d295c9f44c03eefc2696eb7b45c2fcb5e85
+Merge: e3f4ad8 d30523a
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Fri Jan 24 14:24:11 2014 +0100
+
+    - Merge branch 'master' of git://github.com/jlaso/translations-apibundle
+
+commit e3f4ad820e468b2a93dd630c48a7244ba6257368
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Fri Jan 24 14:23:33 2014 +0100
+
+    - helper improvement
+
+commit d30523aaf5a453221c2a5c422f87aea0c93ba14a
+Author: Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Fri Jan 24 13:30:30 2014 +0100
+
+    require to test if lzf required when installed
+    
+    instead of README, require in composer.json, lzf is needed in order to have full functionality of bundle, install with sudo pecl install lzf in terminal
+
+commit a2b233e4006ab312c560ff5e6099d798f7d0e2ee
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Fri Jan 17 18:07:07 2014 +0100
+
+    - update of translations helper in order to generate csv files
+
+commit 6251a48f9496dc6aec94cdfc85f9d3bc1e06f32e
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Thu Jan 16 23:00:48 2014 +0100
+
+    - changes in sending filename and bundle
+
+commit 134d37bbb4f152348455edf0db66ab0c7ddaa350
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Thu Jan 16 17:53:07 2014 +0100
+
+    - security ask before to erase local DB
+
+commit 80e8a3f66d12886829663cc6ecbd6da131f7698f
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Thu Jan 16 08:41:54 2014 +0100
+
+    - agrego cataloguizacion al dump y envio de bundle y filename en el sync
+
+commit 1b4116a039364af152b2a129acb9c53b2e484f99
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Wed Jan 15 08:46:28 2014 +0100
+
+    - added control to translatable documents
+
+commit 6455aca24158f10924413d0236bdc8fc8ad13c5b
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Tue Jan 14 22:15:49 2014 +0100
+
+    - fix various typos
+
+commit 27a0e3071fc865339b22b4cd7f51144b0a34d9ab
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Tue Jan 14 17:56:57 2014 +0100
+
+    - Advances in sync from server to local
+
+commit 92e701e9e1aa05b114c37bb43a9a33df595fe185
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Tue Jan 14 08:57:58 2014 +0100
+
+    - fix in socket client
+
+commit b6f921ef16d51fcc704aefddb465d6d9063076fb
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Mon Jan 13 22:54:32 2014 +0100
+
+    - remove languages
+
+commit 23a01c32a8deb5d1e785864224e53e5ebc7c3d60
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Mon Jan 13 19:31:17 2014 +0100
+
+    - conflict resolution
+
+commit 7225b29acc9849f627ae6f0ed46bab4987ac627b
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Mon Jan 13 18:09:35 2014 +0100
+
+    - fix in socket service
+
+commit 32c92dcb5489f5cbcf4e07bc962e7773b070f5df
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Mon Jan 13 16:44:27 2014 +0100
+
+    - perfection of mongo sync
+
+commit c82dbacca370879647f76f170eaba5e1c0775425
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sun Jan 12 22:15:03 2014 +0100
+
+    - Sets ACK and removes unused tables.
+
+commit 630e3e6111671e3d279ee2e90e62464ea2b12e68
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sun Jan 12 22:04:24 2014 +0100
+
+    - server address as argument
+
+commit 0665e9a926fc72d2691bb8f3695c56853bc9f6fd
+Merge: 2696b28 f4a5532
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sun Jan 12 20:33:37 2014 +0100
+
+    - Merge branch 'master' of https://bitbucket.org/jlaso/translations-apibundle
+
+commit 2696b285cc3992796646e555004e250d22580a20
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sun Jan 12 20:32:50 2014 +0100
+
+    - New database structure
+
+commit f4a553275f8d33e515a368a01adb22e40c140936
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Fri Jan 10 21:14:11 2014 +0100
+
+    - ajuste en el syncronizador express
+
+commit 8998c22c3287db2d8bbbf844507d704d6a8ca62b
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Thu Jan 9 14:32:52 2014 +0100
+
+    - socket service avances
+
+commit 313362c3063249c3380c7a7aee19848bc38e52e5
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Wed Jan 8 10:01:58 2014 +0100
+
+    - Trying to change connectivity through socket
+
+commit 0f4672b10a63a68dc4bcf262b59e343624c1a330
+Merge: 81b19c4 ab5c792
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Tue Jan 7 14:28:13 2014 +0100
+
+    - Merge branch 'master' of https://bitbucket.org/jlaso/translations-apibundle
+
+commit 81b19c46c8171c8e03c6c78257d65d4e4ba04612
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Tue Jan 7 14:27:50 2014 +0100
+
+    - Advances in api
+
+commit ab5c792b6511f562c91e8ae6e20ebc55a2d5adee
+Merge: 8c68f7c df3cd12
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Tue Jan 7 09:24:14 2014 +0100
+
+    - Merge branch 'master' of bitbucket.org:jlaso/translations-apibundle
+    
+    Conflicts:
+    	Service/ClientApiService.php
+
+commit df3cd12a0dd78eae713f7f16d002956a0d0cad67
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sun Jan 5 23:12:53 2014 +0100
+
+    - Update origin
+
+commit 8c68f7ca9a7d71e6e5713935eedbd1e312df5788
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Fri Jan 3 17:44:47 2014 +0100
+
+    - Nuevo comando que genera un archivo compacto con todas
+      las traducciones y cuenta las líneas y las palabras
+
+commit b38fe617b6361de58ced4058baf7fec09053ca68
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Fri Jan 3 16:53:35 2014 +0100
+
+    - Ajuste para SF 2.2
+
+commit aa3b0f32257665d3bb82a2822695632f123eacd3
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Wed Nov 27 11:32:44 2013 +0100
+
+    - New advances
+
+commit f5900cafc5478aa05e159b060404b355fa9894fa
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sun Nov 24 10:50:42 2013 +0100
+
+    - Repair references to translations_api config item
+
+commit f689db53f99133c1ed0cc0b197da0916d1105a49
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Wed Sep 11 23:47:48 2013 +0200
+
+    - Deletes old and not valuable files.
+
+commit b01e1a2d3f1f798d41d8eb6d4bad979ac00faa02
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Wed Sep 11 23:25:34 2013 +0200
+
+    - First commit
