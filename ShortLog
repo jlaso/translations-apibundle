@@ -1,0 +1,52 @@
+Joseluis Laso (7):
+      require to test if lzf required when installed
+      - since this bundle is in packagist
+      - I clarify the requirements in README
+      - fix markdown in READM
+      - change lzf requirement in composer.json
+      - remove lib-lzf because my mac not recognizes it
+      - added badgets to show downloads and version
+
+joseluis laso (41):
+      - First commit
+      - Deletes old and not valuable files.
+      - Repair references to translations_api config item
+      - New advances
+      - Ajuste para SF 2.2
+      - Nuevo comando que genera un archivo compacto con todas       las traducciones y cuenta las líneas y las palabras
+      - Update origin
+      - Merge branch 'master' of bitbucket.org:jlaso/translations-apibundle
+      - Advances in api
+      - Merge branch 'master' of https://bitbucket.org/jlaso/translations-apibundle
+      - Trying to change connectivity through socket
+      - socket service avances
+      - ajuste en el syncronizador express
+      - New database structure
+      - Merge branch 'master' of https://bitbucket.org/jlaso/translations-apibundle
+      - server address as argument
+      - Sets ACK and removes unused tables.
+      - perfection of mongo sync
+      - fix in socket service
+      - conflict resolution
+      - remove languages
+      - fix in socket client
+      - Advances in sync from server to local
+      - fix various typos
+      - added control to translatable documents
+      - agrego cataloguizacion al dump y envio de bundle y filename en el sync
+      - security ask before to erase local DB
+      - changes in sending filename and bundle
+      - update of translations helper in order to generate csv files
+      - helper improvement
+      - Merge branch 'master' of git://github.com/jlaso/translations-apibundle
+      - change the name of the main command and remove translations files
+      - message blank = key
+      - adjust the creation of local keys with no message with the       key as the content of message.
+      - Refactor dump command, now sync command can regenerate yml files
+      - new posibilities on syn command, now you can regenerate yml
+      - added new functionality to pdoloader in order to       recreate catalog
+      - configuration of bundle in order to leave messages blank or with keyname,       and fix yml regeneration option in sync command
+      - erases all the files in the translations cache folder when finish syncs
+      - fix cache files to remove
+      - removed unused code
+
