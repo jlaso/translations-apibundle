@@ -3,6 +3,7 @@
 namespace JLaso\TranslationsApiBundle\Translation\Loader;
 
 use JLaso\TranslationsApiBundle\Entity\Translation;
+use JLaso\TranslationsApiBundle\Tools\ArrayTools;
 use Symfony\Component\Config\Resource\ResourceInterface;
 use Symfony\Component\Translation\Loader\LoaderInterface;
 use Symfony\Component\Translation\MessageCatalogue;
@@ -21,6 +22,7 @@ class PdoLoader implements LoaderInterface, ResourceInterface
             'locale'     => 'locale',
             'domain'     => 'domain',
             'updated_at' => 'updated_at',
+            'bundle'     => 'bundle',
         ),
         'blank' => 'key',
     );
@@ -33,9 +35,18 @@ class PdoLoader implements LoaderInterface, ResourceInterface
     {
         $this->con     = $entityManager->getConnection();
         $this->options = array_replace_recursive($this->options, $options);
-        if(isset($this->options['blank']) && ($this->options['blank'] == 'key')){
+        if(isset($this->options['fill_blank_messages_with_keyname'])
+             && (filter_var($this->options['fill_blank_messages_with_keyname'], FILTER_VALIDATE_BOOLEAN))){
             $this->con->exec("update `jlaso_translations` set `message` = `key` where message = \"\"");
         }
+    }
+
+    /**
+     * @return array
+     */
+    public function getOptions()
+    {
+        return $this->options;
     }
 
     /**
@@ -50,7 +61,7 @@ class PdoLoader implements LoaderInterface, ResourceInterface
      */
     public function load($resource, $locale, $domain = Translation::DEFAULT_DOMAIN)
     {
-        //echo "domain=", $domain, ", locale=$locale<br>";
+        //echo "domain=", $domain, ", locale=$locale<br>"; die;
         // The loader only accepts itself as a resource.
         if ($resource !== $this) {
             return new MessageCatalogue($locale);
@@ -98,6 +109,42 @@ class PdoLoader implements LoaderInterface, ResourceInterface
         $this->translationsStatement = $stmt;
 
         return $stmt;
+    }
+
+    public function getTranslations($locale, $criteria, $hierarchicalArray = true)
+    {
+        $sql = vsprintf('SELECT `%s` AS `key`, `%s` AS `message` FROM `%s` WHERE `%s` = :locale AND `%s` = :domain', array(
+                // SELECT ..
+                $this->getColumnname('key'),
+                $this->getColumnname('message'),
+                // FROM ..
+                $this->getTablename(),
+                // WHERE ..
+                $this->getColumnname('locale'),
+                strpos('Bundle', $criteria) !== false ? $this->getColumnname('domain') : $this->getColumnname('bundle'),
+            ));
+
+        $stmt = $this->getConnection()->prepare($sql);
+        $stmt->bindParam('locale', $locale);
+        if(strpos('Bundle', $criteria) !== false){
+            $stmt->bindParam('bundle', $criteria);
+        }else{
+            $stmt->bindParam('domain', $criteria);
+        }
+
+        if (false === $stmt->execute()) {
+            throw new \RuntimeException('Could not fetch translation data from database.');
+        }
+
+        $result = array();
+        while ($row = $stmt->fetch()) {
+            $result[$row['key']] =  $row['message'];
+        }
+
+        if($hierarchicalArray){
+            return ArrayTools::keyedAssocToHierarchical($result);
+        }
+        return $result;
     }
 
     /**

@@ -21,6 +21,7 @@ use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\Translation\MessageCatalogueInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Bundle\FrameworkBundle\Translation\Translator;
+use Symfony\Component\Yaml\Yaml;
 
 
 /**
@@ -55,7 +56,7 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         $this->addOption('port', null, InputArgument::OPTIONAL, 'port');
         $this->addOption('address', null, InputArgument::OPTIONAL, 'address');
         $this->addOption('upload-first', null, InputArgument::OPTIONAL, '--upload-first=yes to upload our local DB to remote first of all');
-        $this->addOption('yml', null, InputArgument::OPTIONAL, '--yml=regenerate to regenerate local .yml files from remote DB');
+        $this->addOption('yml', null, InputOption::VALUE_REQUIRED, '--yml=[regenerate,blank,backup] to regenerate local .yml files from remote DB', null);
     }
 
     protected function init($server = null, $port = null)
@@ -77,6 +78,25 @@ class TranslationsSyncCommand extends ContainerAwareCommand
     {
         $this->input    = $input;
         $this->output   = $output;
+
+        $ymlOptions = array(
+            'regenerate' => false,
+            'backup'     => false,
+            'blank'      => false,
+        );
+        $yml = $this->input->getOption('yml');
+        if($yml){
+            $aux = explode(",", $yml);
+            if(count($aux)){
+                foreach($aux as $option){
+                    $ymlOptions[$option] = true;
+                }
+            }
+        }
+        if(count($ymlOptions) != 3){
+            var_dump($ymlOptions);
+            die('Sorry, but you can use only regenerate,blank and backup with --yml option');
+        }
 
         $this->init($input->getOption('address'), $input->getOption('port'));
 
@@ -185,7 +205,7 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         /** @var DialogHelper $dialog */
         $dialog = $this->getHelper('dialog');
 
-        if(($input->getOption('yml') == 'regenerate') ||
+        if(($ymlOptions['regenerate']) ||
             ($dialog->askConfirmation($output,'<question>Do want to regenerate local .yml files ?</question>',false)))
         {
 
@@ -228,10 +248,17 @@ class TranslationsSyncCommand extends ContainerAwareCommand
 
                 foreach($filenames as $locale=>$file){
 
-                    $subKeys = $keys[$locale];
                     $this->output->writeln(sprintf('Generating <info>"%s"</info> ...', $file));
+                    $subKeys = $keys[$locale];
                     $file = dirname($this->rootDir) . '/src/' . $file;
-                    if(file_exists($file)){
+                    if($ymlOptions['blank']){
+                        foreach($subKeys as $key=>$value){
+                            if(!$value){
+                                $subKeys[$key] = $key;
+                            }
+                        }
+                    }
+                    if($ymlOptions['backup'] && file_exists($file)){
                         copy($file, $file . '.' . date('U'));
                     }
                     file_put_contents($file, ArrayTools::prettyYamlDump($subKeys));
@@ -245,20 +272,18 @@ class TranslationsSyncCommand extends ContainerAwareCommand
          * erasing cached translations files
          */
         $this->output->writeln(PHP_EOL . '<info>Clearing SF cache ...</info>');
-        /** @var Translator $translator */
-        //$translator = $this->getContainer()->get('translator');
-        //$translator->removeLocalesCacheFiles($managedLocales);
-        //exec("rm -rf ".$this->rootDir."/app/cache/*");
+
         $finder = new Finder();
-        $finder->files()->in($this->rootDir . "/cache")->name('/catalogue\./i');
+        $finder->files()->in($this->rootDir . "/cache")->name('*');
 
         foreach($finder as $file){
             $fileFull = $file->getRealpath();
             //$relativePath = $file->getRelativePath();
             $fileName = $file->getRelativePathname();
-            $this->output->writeln('removing ' . $fileName);
-
-            unlink($file);
+            if(preg_match('!/translations/.+$!i', $fileName)){
+                $this->output->writeln('removing ' . $fileName);
+                unlink($file);
+            }
         }
 
         $this->output->writeln('');

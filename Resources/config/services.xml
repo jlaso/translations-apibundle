@@ -18,6 +18,7 @@
 
         <service id="jlaso_translations.loader.pdo" class="JLaso\TranslationsApiBundle\Translation\Loader\PdoLoader">
             <argument type="service" id="doctrine.orm.entity_manager" />
+            <argument>%jlaso_translations_api_access%</argument>
             <call method="registerResources">
                 <argument type="service" id="translator" />
             </call>
