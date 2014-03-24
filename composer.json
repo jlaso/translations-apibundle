@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "Client API for translations.com.es",
     "keywords": ["api", "translations"],
-    "homepage": "https://bitbucket.org/jlaso/translations-apibundle",
+    "homepage": "https://github.com/jlaso/translations-apibundle",
     "type": "bundle",
     "license": "propietary",
     "authors": [
