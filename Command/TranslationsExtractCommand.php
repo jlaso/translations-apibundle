@@ -78,14 +78,16 @@ class TranslationsExtractCommand extends ContainerAwareCommand
         $numKeys = 0;
 
         $patterns = array(
-            '*.twig' => "/(['\"])(?P<trans>[^\g{1}]*)\g{1}\s*\|\s*trans/iU",
-            '*.php'  => "/trans\s*\(\s*(['\"])(?P<trans>[^\g{1}]*)\g{1}\s*\)/iU",
-            '*.js'  => "/trans.getTranslation\s*\(\s*(['\"])(?P<trans>[^\g{1}]*)\g{1}/iU",
+            '*.twig' => '/(["\'])(?<trans>(?:\\\1|(?!\1).)*?)\1\s*\|\s*trans/i',
+            '*.php'  => '/trans\s*\(\s*(["\'])(?<trans>(?:\\\1|(?!\1).)*?)\1\s*\)/i',
+            '*.js'   => '/trans.getTranslation\s*\(\s*(["\'])(?<trans>(?:\\\1|(?!\1).)*?)\1\s*\)/i',
         );
         $folders  = array(
             $this->srcDir . '/app',
             $this->srcDir . '/src'
         );
+
+        $keyInfo = array();
 
         foreach($patterns as $filePattern=>$exrPattern){
 
@@ -117,6 +119,9 @@ class TranslationsExtractCommand extends ContainerAwareCommand
                             $keys[$bundleName] = array();
                         }
                         $keys[$bundleName] = array_merge_recursive($keys[$bundleName], $matches["trans"]);
+                        foreach($matches['trans'] as $currentKey){
+                            $keyInfo[$bundleName][$currentKey] = $file->getRelativePathname();
+                        }
                         $numKeys += count($matches["trans"]);
                     }
                     $idx++;
@@ -147,7 +152,7 @@ class TranslationsExtractCommand extends ContainerAwareCommand
 
                 if(!isset($sortedKeys[$bundle][$key])){
 
-                    $output->writeln(sprintf("file local key <info>%s</info>[<comment>%s</comment>] not found in DB", $bundle, $key));
+                    $output->writeln(sprintf("file local key <info>%s</info>[<comment>%s</comment>] not found in DB, file %s", $bundle, $key, $keyInfo[$bundle][$key]));
 
                 }
                 $localSortedKeys[$bundle][$key] = true;
