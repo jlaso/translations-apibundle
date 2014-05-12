@@ -55,6 +55,7 @@ class TranslationsDiscoverAndPushCommand extends ContainerAwareCommand
         $this->setName('jlaso:translations:discover-and-push');
         $this->setDescription('Discover new keys used on twigs, php and js and push to server.');
         $this->addOption('bundle', null, InputArgument::OPTIONAL, '--bundle=bundleName to only extract keys for this bundle');
+        $this->addOption('min-words', null, InputArgument::OPTIONAL, '--min-words=number of words to consider a key');
     }
 
     protected function init()
@@ -79,6 +80,7 @@ class TranslationsDiscoverAndPushCommand extends ContainerAwareCommand
 
         $verbose = (boolean)$input->getOption('verbose');
         $bundleToExtract = $input->getOption('bundle');
+        $minWords = intval($input->getOption('min-words') ?: 0);
 
         $this->output->writeln('<info>*** Discovering new keys in php, twig and js files ***</info>');
 
@@ -89,6 +91,7 @@ class TranslationsDiscoverAndPushCommand extends ContainerAwareCommand
 
         $patterns = array(
             '*.twig' => '/(["\'])(?<trans>(?:\\\1|(?!\1).)+?)\1\s*\|\s*trans/i',
+            '*.html.twig' => '/\.trans\s*\(\s*(["\'])(?<trans>(?:\\\1|(?!\1).)+?)\1/i',
             '*.php'  => '/trans\s*\(\s*(["\'])(?<trans>(?:\\\1|(?!\1).)+?)\1\s*\)/i',
             '*Type.php' => '/([\'"])label\1\s*=>\s*([\'"])(?<trans>(?:\\\2|(?!\2).)+?)\2/',
             '*.js'   => '/trans.getTranslation\s*\(\s*(["\'])(?<trans>(?:\\\1|(?!\1).)+?)\1\s*\)/i',
@@ -140,7 +143,7 @@ class TranslationsDiscoverAndPushCommand extends ContainerAwareCommand
                             foreach($matches['trans'] as $currentKey){
                                 $keyInfo[$bundleName][$currentKey] = $file->getRelativePathname();
                             }
-                            $numKeys += count($matches["trans"]);
+                            $numKeys += count($matches['trans']);
                         }
                         $idx++;
                     }
@@ -152,14 +155,16 @@ class TranslationsDiscoverAndPushCommand extends ContainerAwareCommand
         $output->writeln(sprintf("Total %d keys extracted (%d)", $numKeys, count($keys, COUNT_RECURSIVE)));
 
 
+        // get all the translations from the local DB
         $sortedKeys = array();
         /** @var Translation[] $localKeys */
         $localKeys = $this->translationRepository->findAll();
         foreach($localKeys as $localKey){
             $bundle = $localKey->getBundle();
             $keyName = $localKey->getKey();
-            $sortedKeys[$bundle][$keyName] = true;
+            $sortedKeys[$keyName][$bundle] = true;
         }
+        unset($localKeys);
 
         $localSortedKeys = array();
         /** @var CandidateKey[] $candidates */
@@ -170,12 +175,13 @@ class TranslationsDiscoverAndPushCommand extends ContainerAwareCommand
 
             foreach($keyArray as $key){
 
-                if(!isset($sortedKeys[$bundle][$key])){
+                if(!isset($sortedKeys[$key]/*[$bundle]*/)){
 
-                    $file = $keyInfo[$bundle][$key];
-                    $candidates[] = new CandidateKey($bundle, $file, $key);
-                    //$output->writeln(sprintf("file local key <info>%s</info>[<comment>%s</comment>] not found in DB, file %s", $bundle, $key, $file));
-
+                    if(!$minWords || (($minWords-1) <= substr_count($key, "."))){
+                        $file = $keyInfo[$bundle][$key];
+                        $candidates[] = new CandidateKey($bundle, $file, $key);
+                        //$output->writeln(sprintf("file local key <info>%s</info>[<comment>%s</comment>] not found in DB, file %s", $bundle, $key, $file));
+                    }
                 }
                 $localSortedKeys[$bundle][$key] = true;
             }
@@ -198,16 +204,22 @@ class TranslationsDiscoverAndPushCommand extends ContainerAwareCommand
 //
 //        }
 
-        $output->writeln("Check the possible candidate keys to upload to server");
-
-        foreach($candidates as $candidate){
-
-            $output->writeln(sprintf("file local key <info>%s</info>[<comment>%s</comment>] not found in DB, file %s", $candidate->getBundle(), $candidate->getKey(), $candidate->getFile()));
-
+        if(!count($candidates)){
+            $output->writeln("Congratulations!, you have all the keys synchronized");
+            exit;
         }
 
-        $output->writeln('Have you been synchronized your translations with the sync command?');
+        $output->writeln("Check the possible candidate keys to upload to server");
+        foreach($candidates as $candidate){
+            $output->writeln(
+                sprintf("key <info>%s</info>[<comment>%s</comment>] not found in local DB, file %s",
+                $candidate->getKey(),
+                $candidate->getBundle(),
+                $candidate->getFile())
+            );
+        }
 
+        $output->writeln(PHP_EOL . '<info>Have you been synchronized your translations with the sync command?</info>' . PHP_EOL);
 
         /** @var DialogHelper $dialog */
         $dialog = $this->getHelper('dialog');
@@ -248,11 +260,11 @@ class TranslationsDiscoverAndPushCommand extends ContainerAwareCommand
 
             }
 
-            $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
+            //$this->output->writeln('uploadKeys("' . $catalog . '", $data)');
 
-            var_dump($data); //die;
+            //var_dump($data); //die;
 
-            $this->clientApiService->init('localhost', 10000);
+            $this->clientApiService->init(/*'localhost', 10000*/);
             $result = $this->clientApiService->uploadKeys($catalog, $data);
 
 
