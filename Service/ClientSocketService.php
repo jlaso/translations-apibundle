@@ -46,6 +46,8 @@ class ClientSocketService
                 'transdoc_index'           => 'transdoc-index',
                 'transdoc_sync'            => 'transdoc-sync',
                 'transdoc_get'             => 'transdoc-get',
+                // watch
+                'register'                 => 'register',
             ),
             isset($apiData['url_plan']) ? $apiData['url_plan'] : array()
         );
@@ -509,6 +511,19 @@ class ClientSocketService
             )
         );
 
+    }
+
+
+    /**
+     *   WATCH
+     */
+
+    public function register($projectId = null)
+    {
+        return $this->callService($this->url_plan['register'], array(
+                'project_id' => $projectId ?: $this->project_id,
+            )
+        );
     }
 
 }

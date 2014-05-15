@@ -206,7 +206,7 @@ class TranslationsDiscoverAndPushCommand extends ContainerAwareCommand
 
         }
 
-        $output->writeln('Have you been synchronized your translations with the sync command?');
+        $output->writeln('<info>Have you been synchronized your translations with the sync command?</info>');
 
 
         /** @var DialogHelper $dialog */
@@ -230,7 +230,7 @@ class TranslationsDiscoverAndPushCommand extends ContainerAwareCommand
                 $bundle   = $candidate->getBundle();
                 $fileName = $candidate->getFile();
                 preg_match('|^(?<prefix>\w+)/'.$bundle.'/|', $fileName, $matches);
-                if($matches['prefix']){
+                if(isset($matches['prefix'])){
                     $prefix = $matches['prefix'];
 
                     foreach($managedLocales as $locale){
@@ -250,7 +250,7 @@ class TranslationsDiscoverAndPushCommand extends ContainerAwareCommand
 
             $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
 
-            var_dump($data); //die;
+            //var_dump($data); //die;
 
             $this->clientApiService->init('localhost', 10000);
             $result = $this->clientApiService->uploadKeys($catalog, $data);
