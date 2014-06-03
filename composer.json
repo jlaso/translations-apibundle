@@ -1,11 +1,11 @@
 {
     "name": "jlaso/translations-apibundle",
     "version": "1.0.0",
-    "description": "Client API for translations.com.es",
-    "keywords": ["api", "translations"],
+    "description": "Client API for https://www.tradukoj.com",
+    "keywords": ["api", "translations", "symfony"],
     "homepage": "https://github.com/jlaso/translations-apibundle",
     "type": "bundle",
-    "license": "propietary",
+    "license": "mit",
     "authors": [
         {
             "name": "Joseluis Laso",
