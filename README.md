@@ -31,6 +31,8 @@ Then register the bundle with your kernel:
     $bundles = array(
         // ...
         new JLaso\TranslationsApiBundle\TranslationsApiBundle(),
+        // Excel Bundle
+        new Liuggio\ExcelBundle\LiuggioExcelBundle(),
         // ...
     );
 

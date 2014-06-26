@@ -106,7 +106,6 @@ class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $container = $this->getContainer();
-        //$project   = $input->getArgument('project');
         $file      = $input->getArgument('excel');
         $language  = $input->getArgument('language');
 
