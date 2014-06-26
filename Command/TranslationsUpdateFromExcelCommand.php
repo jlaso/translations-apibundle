@@ -99,6 +99,8 @@ class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
      * one workseeht named "key" with the following format
      *   rowX colA ColB
      *     1   (1)  [1]   => (1) var substitution, [1] style substitution
+     *
+     * the reason for this "key system" is that normally translators haven't to translate the html labels and variables and this is a way to assure this
      */
 
     public function execute(InputInterface $input, OutputInterface $output)
