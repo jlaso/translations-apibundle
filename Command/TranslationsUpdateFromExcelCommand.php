@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
+use JLaso\TranslationsApiBundle\Service\ClientSocketService;
 use JLaso\TranslationsBundle\Document\Repository\TranslationRepository;
 use JLaso\TranslationsBundle\Document\Translation;
 use JLaso\TranslationsBundle\Entity\Project;
@@ -34,6 +35,8 @@ class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
     protected $name;
     /** @var  string */
     protected $description;
+    /** @var ClientSocketService */
+    private $clientApiService;
 
     protected function configure()
     {
@@ -44,7 +47,18 @@ class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
             ->setDescription($this->description)
             ->addArgument('excel', InputArgument::REQUIRED, 'excel doc')
             ->addArgument('language', InputArgument::REQUIRED, 'language')
+            ->addOption('port', null, InputArgument::OPTIONAL, 'port')
+            ->addOption('address', null, InputArgument::OPTIONAL, 'address')
+            ->addOption('approved', null, InputArgument::OPTIONAL, 'approved')
         ;
+    }
+
+    protected function init($server = null, $port = null)
+    {
+        /** @var ClientSocketService $clientApiService */
+        $clientApiService = $this->getContainer()->get('jlaso_translations.client.socket');
+        $this->clientApiService = $clientApiService;
+        $this->clientApiService->init($server, $port);
     }
 
     /**
@@ -66,9 +80,10 @@ class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
                 if(preg_match($regr, $reference, $match)){
                     $replc = "%".$match['val']."%";
                 }else{
-                    $regr = "/\({$idx}\)(.*?)\({$idx}\)/";
+                    //$regr = "/\({$idx}\)(.*?)\({$idx}\)/";
                     $replc = "%$1%";
                 };
+                $regr = "/\(\s?{$idx}\s?\)(.*?)\(\s?{$idx}\s?\)/";
             }else{
                 if(preg_match("/\[(?<idx>\d+)\]/", $srch, $match)){
                     $idx = $match['idx'];
@@ -98,7 +113,7 @@ class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
      * one worksheet named as the language you want to import
      * one workseeht named "key" with the following format
      *   rowX colA ColB
-     *     1   (1)  [1]   => (1) var substitution, [1] style substitution
+     *     1   [1]  (1)   => (1) var substitution, [1] style substitution
      *
      * the reason for this "key system" is that normally translators haven't to translate the html labels and variables and this is a way to assure this
      */
@@ -108,6 +123,9 @@ class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
         $container = $this->getContainer();
         $file      = $input->getArgument('excel');
         $language  = $input->getArgument('language');
+        $approved  = (boolean)$input->getOption('approved');
+
+        $this->init($input->getOption('address'), $input->getOption('port'));
 
         $phpExcel  = $container->get('phpexcel');
 
@@ -139,28 +157,105 @@ class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
             }
         }
 
+        // get the worksheet that match its title with language
         $worksheet = $excel->getSheetByName($language);
 
-        $output->writeln('<comment>Worksheet - ' . $worksheet->getTitle() . "</comment>");
+        $output->writeln("\n<comment>Worksheet - " . $worksheet->getTitle() . "</comment>");
+        $localData = array();
 
         foreach ($worksheet->getRowIterator() as $row) {
             /** @var \PHPExcel_Worksheet_Row $row */
-            $index = $row->getRowIndex();
-            $output->write("<comment>$index</comment>");
-
-            $rowNum       = $row->getRowIndex();
-
-            $keyName   = $this->getCellValue($worksheet, "A{$rowNum}");
-            $reference = $this->getCellValue($worksheet, "B{$rowNum}");
-            $message   = $this->getCellValue($worksheet, "C{$rowNum}");
-
+            $index       = $row->getRowIndex();
+            $rowNum      = $row->getRowIndex();
+            $keyName     = $this->getCellValue($worksheet, "A{$rowNum}");
+            $reference   = $this->getCellValue($worksheet, "B{$rowNum}");
+            $message     = $this->getCellValue($worksheet, "C{$rowNum}");
             $substituted = $this->substitute($key, $message, $reference);
-
-            $output->write(sprintf("\t<info>%s</info> => %s => <comment>%s</comment>", $keyName, $reference, $substituted));
-            echo "\n";
+            //$output->writeln(sprintf("<comment>$index</comment>\t<info>%s</info> => %s => <comment>%s</comment>", $keyName, $reference, $substituted));
+            $localData[$keyName] = $substituted;
         }
 
-        $output->writeln(" done!");
+        // download translations from server
+        $result = $this->clientApiService->getCatalogIndex();
+
+        if($result['result']){
+            $catalogs = $result['catalogs'];
+        }else{
+            die('error getting catalogs');
+        }
+
+        $tempData = array();
+
+        foreach($catalogs as $catalog){
+
+            $output->writeln(PHP_EOL . sprintf('<info>Processing "%s" catalog ...</info>', $catalog));
+
+            $result = $this->clientApiService->downloadKeys($catalog);
+            //var_dump($result); die;
+            file_put_contents('/tmp/' . $catalog . '.json', json_encode($result));
+            $bundles = $result['bundles'];
+            //var_dump($result['data']['Bad credentials']); die;
+
+            foreach($result['data'] as $key=>$data){
+
+                foreach($data as $locale=>$messageData){
+
+                    if(($locale == $language) && isset($localData[$key])){
+                        $tempData[$key][$catalog] = array_merge($messageData, array('new' => $localData[$key]));
+                        //$output->writeln(sprintf("\t|-- key %s:%s/%s ... ", $catalog, $key, $locale));
+                        echo '.';
+                        //$fileName = isset($messageData['fileName']) ? $messageData['fileName'] : '';
+                    }
+
+                }
+            }
+        }
+
+        //print_r($tempData);
+
+        $output->writeln("\nAnalysing the result of the match process...\n");
+        $count = 0;
+        // data to send to translations server
+        $data = array();
+        // this date guarantees that the data sent to server forces to update key
+        $date = date('c');
+
+        // get the key that are repeated
+        foreach($tempData as $key=>$restData){
+            if(count($restData) > 1){
+                $output->writeln("\tthe key $key is in more that one catalog");
+            }
+            foreach($restData as $catalog=>$messageData){
+
+                if(!empty($messageData['new']) && ($messageData['message'] != $messageData['new'])){
+
+                    //var_dump($messageData); die;
+                    $data[$key][$language] = array(
+                        'approved'  => $approved,
+                        'message'   => $messageData['new'],
+                        'updatedAt' => $date,
+                        'fileName'  => isset($messageData['fileName']) ? $messageData['fileName'] : "",
+                        'bundle'    => isset($bundles[$key]) ? $bundles[$key] : "",
+                    );
+                    $output->writeln("the key $key needs to be updated");
+                    $count++;
+
+                }
+
+            }
+        }
+
+        $total = count($localData);
+        $output->writeln("\nfound $count keys that need to be updated from a total of $total keys that have the file to process\n");
+
+        if($count){
+            //ld($data);
+            $output->writeln('uploadKeys("' . $catalog . '", $data)');
+            $result = $this->clientApiService->uploadKeys($catalog, $data);
+            //var_dump($result);
+        }
+
+        $output->writeln("\n done!");
     }
 
 
