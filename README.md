@@ -67,8 +67,12 @@ Usage
 first schema:update to init database with SCM table:
 
     app/console doctrine:schema:update --force --env=dev
+
+now, fill the local database with the content of your translations/catalog.locale.yml files 
     
-and next upload your messages to remote server
+    app/console jlaso:translations:dump
+    
+and next upload your messages form local database to remote server
 
     app/console jlaso:translations:sync --upload-first=yes
     when you use the bundle first time is necessary the use the upload-first option in order to generate the remote db
