@@ -4,7 +4,7 @@
 Overview
 ========
 
-This bundle permits API comunication with https://translations.com.es
+This bundle permits API comunication with https://www.tradukoj.com
 
 In order to install this bundle you need to pay attention with requiremens: 
 
@@ -48,7 +48,7 @@ Configuration
         project_id: 1 # the number that correspond to the project created
         key:  1234  # the key that systems assigns
         secret: 1234  # the password that you choose when init project in server
-        url: http://translations.com.es/app.php/api/
+        url: http://www.tradukoj.com/app.php/api/
 
 
     // in app/config/config.yml
