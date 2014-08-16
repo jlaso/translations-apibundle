@@ -145,15 +145,15 @@ class TranslationsSyncCommand extends ContainerAwareCommand
             }
         }else{
 
-            /** @var DialogHelper $dialog */
-            $dialog = $this->getHelper('dialog');
-            if (!$dialog->askConfirmation(
-                $output,
-                '<question>The local DB will be erased, it is ok ?</question>',
-                false
-            )) {
-                die('Please, repeat the command with --force==yes in order to update remote DB with local changes');
-            }
+//            /** @var DialogHelper $dialog */
+//            $dialog = $this->getHelper('dialog');
+//            if (!$dialog->askConfirmation(
+//                $output,
+//                '<question>The local DB will be erased, it is ok ?</question>',
+//                false
+//            )) {
+//                die('Please, repeat the command with --force==yes in order to update remote DB with local changes');
+//            }
 
         }
 
@@ -205,8 +205,8 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         /** @var DialogHelper $dialog */
         $dialog = $this->getHelper('dialog');
 
-        if(($ymlOptions['regenerate']) ||
-            ($dialog->askConfirmation($output,'<question>Do want to regenerate local .yml files ?</question>',false)))
+        if(($ymlOptions['regenerate']) /*||
+            ($dialog->askConfirmation($output,'<question>Do want to regenerate local .yml files ?</question>',false))*/)
         {
 
             $bundles = $this->translationsRepository->getBundles();
