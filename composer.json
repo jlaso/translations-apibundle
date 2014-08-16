@@ -1,6 +1,6 @@
 {
     "name": "jlaso/translations-apibundle",
-    "version": "1.0.0",
+    "version": "1.3",
     "description": "Client API for https://www.tradukoj.com",
     "keywords": ["api", "translations", "symfony", "tradukoj"],
     "homepage": "https://github.com/jlaso/translations-apibundle",

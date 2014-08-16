@@ -1,3 +1,149 @@
+commit 7b14fc026495483b0a80bf409cd75af46c2f8856
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sat Aug 16 18:49:58 2014 +0200
+
+    - dont show message to truncate table of temporal translations
+
+commit b791ea61fb85bd7ef4f89124ee04c86c29f593c4
+Merge: e8993d5 9fe5824
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sat Aug 16 18:49:40 2014 +0200
+
+    - Merge branch 'master' into develop
+
+commit 9fe5824f51d7b59ab82190248eaac115881f45ae
+Author: Patrick Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Sat Aug 16 18:47:45 2014 +0200
+
+    Update composer.json
+
+commit b02d34983391271851b104f302bdeebd0b33710f
+Author: Patrick Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Sat Aug 16 18:42:58 2014 +0200
+
+    Update README.md
+
+commit ebcc9c75e641681873230c19b8ec8448f6cca914
+Author: Patrick Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Sat Aug 16 18:42:24 2014 +0200
+
+    Update composer.json
+
+commit 8be83f3854b95d76ad2e1dbe8813f5048c210a46
+Author: Patrick Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Sat Aug 16 18:41:19 2014 +0200
+
+    Update and rename LICENSE.md to LICENSE
+
+commit 214e1f519aaaa7ab7ff4f398e510b219813e0845
+Author: Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Thu Jul 3 12:31:40 2014 +0200
+
+    Update README.md
+    
+    added info to upload first
+
+commit 06ea4ef679002b8e298d6e80d5fe319ab465e7fe
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Mon Jun 30 12:57:48 2014 +0200
+
+    - fix typo in Excel update command
+
+commit b44ef531f7611e0625423acb263f2a3197dd5366
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Thu Jun 26 18:16:04 2014 +0200
+
+    - added in README the need to add LiuggioExcelBundle in AppKernel of host project
+
+commit 0a8df733890667d1fac68ef36015166d3a374d4f
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Thu Jun 26 17:52:38 2014 +0200
+
+    - added demo excel document
+
+commit 10c94f24c5c05b1294110be106aa7a2e6f7e67c9
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Thu Jun 26 17:30:28 2014 +0200
+
+    - added new command in order to be able to update translations from a
+      exel with specified format
+
+commit f3e614173eb06bb19aeba4cf6721a11e904934c7
+Merge: 3af41c6 e87c99f
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Thu Jun 26 12:55:50 2014 +0200
+
+    - Merge branch 'master' of git://github.com/jlaso/translations-apibundle
+
+commit 3af41c6a4c4b5e51592f4dd5a444b9fdb681c41e
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Thu Jun 26 12:55:17 2014 +0200
+
+    - new command to upload an entire yml to the server
+
+commit e87c99fae70bb909d737aa6a2e06b0b58e5a6ac6
+Author: Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Tue Jun 3 22:50:14 2014 +0200
+
+    Create LICENSE.md
+
+commit c588b98bc9f2682db28e3b15fa151d7cf838d730
+Author: Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Tue Jun 3 22:48:11 2014 +0200
+
+    update license and name
+
+commit e4d87d3cb0a4714c49992d4add66e00ffa9593d4
+Merge: 8060108 1ffbc8c
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Mon May 12 14:47:49 2014 +0200
+
+    - Merge branch 'feature/discover-and-push-command'
+
+commit 1ffbc8c8465bba625654fb9cbdf9703b47319e76
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Mon May 12 14:47:14 2014 +0200
+
+    - finished the discover-and-push command
+
+commit 57ac2c806e5d97c0e9c282876c3d1f5cc4c6881c
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Thu May 8 14:54:41 2014 +0200
+
+    - new command dicover-and-push keys
+
+commit 806010871d8cc9fc8dd186b6e8425e547db8442f
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Tue May 6 13:39:21 2014 +0200
+
+    - added new regex to extract keys
+
+commit f873252bd9fcd6fe09d8780bbd7f33aebdc1e626
+Author: Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Mon Mar 24 17:50:20 2014 +0100
+
+    Update composer.json
+
+commit e8993d5e6df734def049330b1314aa7e4f256918
+Merge: a00aa63 8e01638
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Fri Feb 28 15:40:04 2014 +0100
+
+    - Merge branch 'release/1.2' into develop
+
+commit 409dd9a6eb49d9162cb73e573067da2c101000d8
+Merge: ac26638 8e01638
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Fri Feb 28 15:39:35 2014 +0100
+
+    - Merge branch 'release/1.2'
+
+commit 8e01638e694e67b72aa8a522d19ace70363c7ad4
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Fri Feb 28 15:39:17 2014 +0100
+
+    - change to version 1.2
+
 commit a00aa6303c76811d50115c562e7202c0440469e1
 Author: joseluis laso <wld1373@gmail.com>
 Date:   Mon Feb 17 11:45:14 2014 +0100
@@ -22,6 +168,18 @@ Date:   Wed Feb 12 09:29:33 2014 +0100
 
     - configuration of bundle in order to leave messages blank or with keyname,
       and fix yml regeneration option in sync command
+
+commit ac266383bd33460c185818720c36101b5afd8714
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Mon Feb 10 19:35:08 2014 +0100
+
+    - remove ImageTools.php
+
+commit 1a1abd9427a7c5573d7f1cd5dbeeaabc877d2593
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Mon Feb 10 09:40:34 2014 +0100
+
+    - added imagetools
 
 commit 63d67dba8211830111adc76f821f62adffd30325
 Author: joseluis laso <wld1373@gmail.com>
