@@ -5,16 +5,16 @@
     "keywords": ["api", "translations", "symfony"],
     "homepage": "https://github.com/jlaso/translations-apibundle",
     "type": "bundle",
-    "license": "mit",
+    "license": "MIT",
     "authors": [
         {
-            "name": "Joseluis Laso",
-            "email": "jlaso@joseluislaso.es",
-            "homepage": "http://www.joseluislaso.es"
+            "name": "Patrick Joseluis Laso",
+            "email": "wld1373@gmail.com",
+            "homepage": "http://www.patricklaso.com"
         }
     ],
     "require": {
-        "php": ">=5.3.0",
+        "php": ">=5.3.7",
 
         "liuggio/excelbundle": "~2.0"
     },
