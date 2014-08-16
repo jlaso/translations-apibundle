@@ -71,20 +71,10 @@ class TranslationsHelperCommand extends ContainerAwareCommand
         $this->addOption('format', null, InputOption::VALUE_OPTIONAL, 'Output format ('.implode(',',$this->getFormats()).')', null);
     }
 
-    /**
-     * Estrategia:
-     * - recuperar la lista de bundles
-     * - confeccionar una lista completa de bundles con los locales y remotos
-     * - recorrer la lista de bundles
-     *     - recuperar la lista de claves del bundle
-     *     - confeccionar una lista completa de claves con los locales y remotos del bundle
-     *     - enviar un if-newest de cada clave/idioma
-     *
-     */
 
     protected function init()
     {
-        $this->srcDir     = realpath($this->getApplication()->getKernel()->getRootDir() . '/../src/') . '/';
+        $this->srcDir = realpath($this->getApplication()->getKernel()->getRootDir() . '/../src/') . '/';
     }
 
     /**
