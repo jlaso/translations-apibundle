@@ -2,20 +2,19 @@
     "name": "jlaso/translations-apibundle",
     "version": "1.0.0",
     "description": "Client API for https://www.tradukoj.com",
-    "keywords": ["api", "translations", "symfony"],
+    "keywords": ["api", "translations", "symfony", "tradukoj"],
     "homepage": "https://github.com/jlaso/translations-apibundle",
     "type": "bundle",
     "license": "MIT",
     "authors": [
         {
-            "name": "Patrick Joseluis Laso",
+            "name": "Patrick JL Laso",
             "email": "wld1373@gmail.com",
             "homepage": "http://www.patricklaso.com"
         }
     ],
     "require": {
         "php": ">=5.3.7",
-
         "liuggio/excelbundle": "~2.0"
     },
     "autoload": {
