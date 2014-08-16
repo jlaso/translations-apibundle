@@ -1,5 +1,4 @@
-[![Latest Stable Version](https://poser.pugx.org/jlaso/translations-apibundle/v/stable.png)](https://packagist.org/packages/jlaso/translations-apibundle)
-[![Total Downloads](https://poser.pugx.org/jlaso/translations-apibundle/downloads.png)](https://packagist.org/packages/jlaso/translations-apibundle)
+[![Latest Stable Version](https://poser.pugx.org/jlaso/translations-apibundle/v/stable.svg)](https://packagist.org/packages/jlaso/translations-apibundle) [![Total Downloads](https://poser.pugx.org/jlaso/translations-apibundle/downloads.svg)](https://packagist.org/packages/jlaso/translations-apibundle) [![Latest Unstable Version](https://poser.pugx.org/jlaso/translations-apibundle/v/unstable.svg)](https://packagist.org/packages/jlaso/translations-apibundle) [![License](https://poser.pugx.org/jlaso/translations-apibundle/license.svg)](https://packagist.org/packages/jlaso/translations-apibundle)
 
 ========
 Overview
@@ -9,7 +8,7 @@ This bundle permits API comunication with https://translations.com.es
 
 In order to install this bundle you need to pay attention with requiremens: 
 
-    php > 5.3
+    php > 5.3.7
     php-lzf extension must be installed (try sudo pecl install lzf)
 
 
