@@ -1,4 +1,4 @@
-Joseluis Laso (7):
+Joseluis Laso (11):
       require to test if lzf required when installed
       - since this bundle is in packagist
       - I clarify the requirements in README
@@ -6,8 +6,18 @@ Joseluis Laso (7):
       - change lzf requirement in composer.json
       - remove lib-lzf because my mac not recognizes it
       - added badgets to show downloads and version
+      Update composer.json
+      update license and name
+      Create LICENSE.md
+      Update README.md
 
-joseluis laso (41):
+Patrick Joseluis Laso (4):
+      Update and rename LICENSE.md to LICENSE
+      Update composer.json
+      Update README.md
+      Update composer.json
+
+joseluis laso (58):
       - First commit
       - Deletes old and not valuable files.
       - Repair references to translations_api config item
@@ -45,8 +55,25 @@ joseluis laso (41):
       - Refactor dump command, now sync command can regenerate yml files
       - new posibilities on syn command, now you can regenerate yml
       - added new functionality to pdoloader in order to       recreate catalog
+      - added imagetools
+      - remove ImageTools.php
       - configuration of bundle in order to leave messages blank or with keyname,       and fix yml regeneration option in sync command
       - erases all the files in the translations cache folder when finish syncs
       - fix cache files to remove
       - removed unused code
+      - change to version 1.2
+      - Merge branch 'release/1.2'
+      - Merge branch 'release/1.2' into develop
+      - added new regex to extract keys
+      - new command dicover-and-push keys
+      - finished the discover-and-push command
+      - Merge branch 'feature/discover-and-push-command'
+      - new command to upload an entire yml to the server
+      - Merge branch 'master' of git://github.com/jlaso/translations-apibundle
+      - added new command in order to be able to update translations from a       exel with specified format
+      - added demo excel document
+      - added in README the need to add LiuggioExcelBundle in AppKernel of host project
+      - fix typo in Excel update command
+      - Merge branch 'master' into develop
+      - dont show message to truncate table of temporal translations
 
