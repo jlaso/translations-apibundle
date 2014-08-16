@@ -145,15 +145,15 @@ class TranslationsSyncCommand extends ContainerAwareCommand
             }
         }else{
 
-            /** @var DialogHelper $dialog */
-            $dialog = $this->getHelper('dialog');
-            if (!$dialog->askConfirmation(
-                $output,
-                '<question>The local DB will be erased, it is ok ?</question>',
-                false
-            )) {
-                die('Please, repeat the command with --force==yes in order to update remote DB with local changes');
-            }
+//            /** @var DialogHelper $dialog */
+//            $dialog = $this->getHelper('dialog');
+//            if (!$dialog->askConfirmation(
+//                $output,
+//                '<question>The local DB will be erased, it is ok ?</question>',
+//                false
+//            )) {
+//                die('Please, repeat the command with --force==yes in order to update remote DB with local changes');
+//            }
 
         }
 
@@ -171,16 +171,17 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         }else{
             die('error getting catalogs');
         }
-
         foreach($catalogs as $catalog){
 
             $this->output->writeln(PHP_EOL . sprintf('<info>Processing catalog %s ...</info>', $catalog));
 
             $result = $this->clientApiService->downloadKeys($catalog);
             //var_dump($result); die;
+            file_put_contents('/tmp/' . $catalog . '.json', json_encode($result));
             $bundles = $result['bundles'];
 
             foreach($result['data'] as $key=>$data){
+//$output->write("[$key]");
                 foreach($data as $locale=>$messageData){
                     //$this->output->writeln(sprintf("\t|-- key %s:%s/%s ... ", $catalog, $key, $locale));
                     echo '.';
@@ -193,7 +194,6 @@ class TranslationsSyncCommand extends ContainerAwareCommand
             // meter las traducciones en local
 
         }
-
         $this->output->writeln(PHP_EOL . '<info>Flushing to DB ...</info>');
 
         $this->em->flush();
@@ -205,8 +205,8 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         /** @var DialogHelper $dialog */
         $dialog = $this->getHelper('dialog');
 
-        if(($ymlOptions['regenerate']) ||
-            ($dialog->askConfirmation($output,'<question>Do want to regenerate local .yml files ?</question>',false)))
+        if(($ymlOptions['regenerate']) /*||
+            ($dialog->askConfirmation($output,'<question>Do want to regenerate local .yml files ?</question>',false))*/)
         {
 
             $bundles = $this->translationsRepository->getBundles();
