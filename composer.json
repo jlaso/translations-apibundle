@@ -17,6 +17,7 @@
         "php": ">=5.3.7",
         "liuggio/excelbundle": "~2.0"
     },
+    "minimum-stability": "stable",
     "autoload": {
         "psr-0": { "JLaso\\TranslationsApiBundle": "" }
     },
