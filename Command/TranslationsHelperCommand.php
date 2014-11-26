@@ -52,9 +52,9 @@ class TranslationsHelperCommand extends ContainerAwareCommand
     protected function getFormats()
     {
         return array(
-            self::TXT_FORMAT   => 'plain text',
-            self::CSV_FORMAT   => 'csv format',
-            self::CSV2_FORMAT  => 'csv with html labels minified',
+            self::TXT_FORMAT   => self::TXT_FORMAT . ': plain text',
+            self::CSV_FORMAT   => self::CSV_FORMAT . ': csv format',
+            self::CSV2_FORMAT  => self::CSV2_FORMAT . ': csv with html labels minified',
         );
     }
 
