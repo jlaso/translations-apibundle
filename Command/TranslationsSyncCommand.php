@@ -261,6 +261,7 @@ class TranslationsSyncCommand extends ContainerAwareCommand
                     if($ymlOptions['backup'] && file_exists($file)){
                         copy($file, $file . '.' . date('U'));
                     }
+                    @mkdir(dirname($file), 0777, true);
                     file_put_contents($file, ArrayTools::prettyYamlDump($subKeys));
                 }
 
