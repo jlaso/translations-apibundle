@@ -28,7 +28,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Container;
 
-class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
+class TranslationsExportToExcelCommand extends ContainerAwareCommand
 {
 
     /** @var  string */
@@ -40,8 +40,8 @@ class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
 
     protected function configure()
     {
-        $this->name        = 'jlaso:translations:update-from-excel';
-        $this->description = 'Update translations from an Excel document';
+        $this->name        = 'jlaso:translations:export-to-excel';
+        $this->description = 'Export translations to an Excel document';
         $this
             ->setName($this->name)
             ->setDescription($this->description)
@@ -125,12 +125,43 @@ class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
         $language  = $input->getArgument('language');
         $approved  = (boolean)$input->getOption('approved');
 
-        $this->init($input->getOption('address'), $input->getOption('port'));
+        //$this->init($input->getOption('address'), $input->getOption('port'));
 
         $phpExcel  = $container->get('phpexcel');
 
         /** @var \PHPExcel $excel */
-        $excel     = $phpExcel->createPHPExcelObject($file);
+        $excel = $phpExcel->createPHPExcelObject();
+        $excel->getProperties()->setCreator("Maarten Balliauw")
+            ->setLastModifiedBy("Maarten Balliauw")
+            ->setTitle("Office 2007 XLSX Test Document")
+            ->setSubject("Office 2007 XLSX Test Document")
+            ->setDescription("Test document for Office 2007 XLSX, generated using PHP classes.")
+            ->setKeywords("office 2007 openxml php")
+            ->setCategory("Test result file");
+
+        $newSheet = clone $excel->getActiveSheet();
+
+        $excel->setActiveSheetIndex(0)
+            ->setTitle($language)
+            ->setCellValue('A1', "key (don't translate)")
+            ->setCellValue('B1', $language . " (don't translate)")
+            ->setCellValue('C1', 'New language (here the translation)');
+
+        $excel->addSheet($newSheet);
+
+        $excel->setActiveSheetIndex(1)
+            ->setTitle('keys')
+            ->setCellValue('A4', 'Miscellaneous glyphs')
+            ->setCellValue('A5', 'éàèùâêîôûëïüÿäöüç');
+
+        $excel->getActiveSheet()->setCellValue('A8',"Hello\nWorld");
+        $excel->getActiveSheet()->getRowDimension(8)->setRowHeight(-1);
+        $excel->getActiveSheet()->getStyle('A8')->getAlignment()->setWrapText(true);
+
+        $objWriter = new \PHPExcel_Writer_Excel5($excel);
+        $objWriter->save($file);
+
+        die('OK');
 
         $keySheet = $excel->getSheetByName('key');
         $key = array(); //array_flip(json_decode($keySheet->getCell('A1'), true));

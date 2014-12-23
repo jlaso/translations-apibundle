@@ -240,6 +240,11 @@ class ClientSocketService
 
     public function createSocket()
     {
+        if(function_exists("lzf_compress")){
+            $base = "create-socket/";
+        }else{
+            $base = "create-socket-no-lzf/";
+        }
         $url = $this->base_url . 'create-socket/' . $this->project_id;
         $data = array(
             'key'    => $this->api_key,
