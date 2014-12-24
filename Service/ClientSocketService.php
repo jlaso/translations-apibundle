@@ -18,6 +18,8 @@ class ClientSocketService
 
     const DEBUG = false;
 
+    const LZF_FUNCTION = "lzf_compress";
+
     public function __construct($apiData, $environment)
     {
         $this->api_key    = isset($apiData['key']) ? $apiData['key'] : '';
@@ -100,7 +102,11 @@ class ClientSocketService
     protected function sendMessage($msg, $compress = true)
     {
         if($compress){
-            $msg = lzf_compress($msg);
+            if(function_exists(self::LZF_FUNCTION)){
+                $msg = lzf_compress($msg);
+            }else{
+                $msg = gzcompress($msg, 9);
+            }
         }else{
             $msg .= PHP_EOL;
         }
@@ -187,7 +193,11 @@ class ClientSocketService
 
         }while($block < $blocks);
 
-        $result = lzf_decompress($buffer);
+        if(function_exists(self::LZF_FUNCTION)){
+            $result = lzf_decompress($buffer);
+        }else{
+            $result = gzuncompress($buffer);
+        }
 
         if(self::DEBUG){
             $aux = json_decode($result, true);
@@ -240,7 +250,12 @@ class ClientSocketService
 
     public function createSocket()
     {
-        $url = $this->base_url . 'create-socket/' . $this->project_id;
+        if(function_exists(self::LZF_FUNCTION)){
+            $base = "create-socket/";
+        }else{
+            $base = "create-socket-no-lzf/";
+        }
+        $url = $this->base_url . $base . $this->project_id;
         $data = array(
             'key'    => $this->api_key,
             'secret' => $this->api_secret,
