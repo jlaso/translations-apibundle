@@ -177,7 +177,7 @@ class TranslationsSyncCommand extends ContainerAwareCommand
 
             $result = $this->clientApiService->downloadKeys($catalog);
             //var_dump($result); die;
-            file_put_contents('/tmp/' . $catalog . '.json', json_encode($result));
+            file_put_contents(sys_get_temp_dir() . DIRECTORY_SEPARATOR . $catalog . '.json', json_encode($result));
             $bundles = $result['bundles'];
 
             foreach($result['data'] as $key=>$data){
