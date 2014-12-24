@@ -1,3 +1,86 @@
+commit 39309eea71e63a4581efe7cfc810ec3a129c090a
+Merge: 3389100 fa90929
+Author: Patrick JL Laso <wld1373@gmail.com>
+Date:   Wed Dec 24 12:58:48 2014 +0100
+
+    - Merge branch 'feature/new-non-lzf-mode' into develop
+
+commit fa90929872f871200a66003aec2b4c8c6cce547a
+Author: Patrick JL Laso <wld1373@gmail.com>
+Date:   Wed Dec 24 12:57:56 2014 +0100
+
+    - some changes cleaning code
+
+commit 002065c72169ac9267784f3455cfe83c115c0131
+Author: Patrick JL Laso <wld1373@gmail.com>
+Date:   Wed Dec 24 12:30:20 2014 +0100
+
+    - fixed temp dir in order to work on windows system
+
+commit 0cc6e2cae051562b1467f5108a1d5438e4d7d4e3
+Author: Patrick JL Laso <wld1373@gmail.com>
+Date:   Tue Dec 23 20:00:54 2014 +0100
+
+    - checking lzf_compress in all places that is needed
+
+commit 755e46f6b34445c7a2f2ef3fca27eab8fa94bb89
+Author: Patrick JL Laso <wld1373@gmail.com>
+Date:   Tue Dec 23 15:38:55 2014 +0100
+
+    - first approximation to non-lzf mode
+
+commit e44caf82e7bc84150b6103ce3bfb761db3fd3008
+Merge: 6641e6c 3389100
+Author: Patrick JL Laso <wld1373@gmail.com>
+Date:   Wed Nov 26 11:31:49 2014 -0500
+
+    - Merge branch 'develop'
+
+commit 3389100b63398312456e366d236a8229042d45f2
+Author: Patrick JL Laso <wld1373@gmail.com>
+Date:   Wed Nov 26 11:31:06 2014 -0500
+
+    - clarification of help for the helper command and folder creation on sync command
+
+commit 6641e6cc4c08ccdf908e43f6b71d8f0cae3c75b9
+Author: Patrick Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Sat Aug 16 19:09:40 2014 +0200
+
+    Update composer.json
+
+commit 7828d616312551f25e2bbfdc3689ced797180b7d
+Merge: a6d80db 94e3821
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sat Aug 16 18:59:45 2014 +0200
+
+    - Merge branch 'master' into develop
+
+commit 94e3821d1feeb6b7a847f07726d577b8b7c11ff8
+Author: Patrick Joseluis Laso <jlaso@users.noreply.github.com>
+Date:   Sat Aug 16 18:59:26 2014 +0200
+
+    - fixed old references to translations.com.es
+
+commit a6d80db0c573409c02ae86ff647fd61398830e82
+Merge: 7b14fc0 c6a7f9d
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sat Aug 16 18:51:57 2014 +0200
+
+    - Merge branch 'release/1.3' into develop
+
+commit 47fb846c491d3b373b6aae4bb011fbc21becd054
+Merge: 9fe5824 c6a7f9d
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sat Aug 16 18:51:51 2014 +0200
+
+    - Merge branch 'release/1.3'
+
+commit c6a7f9d028c4258376274eefbc910b669b7690d8
+Author: joseluis laso <wld1373@gmail.com>
+Date:   Sat Aug 16 18:51:30 2014 +0200
+
+    - change to version 1.3
+
 commit 7b14fc026495483b0a80bf409cd75af46c2f8856
 Author: joseluis laso <wld1373@gmail.com>
 Date:   Sat Aug 16 18:49:58 2014 +0200
