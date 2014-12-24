@@ -137,24 +137,10 @@ class TranslationsSyncCommand extends ContainerAwareCommand
                     );
 
                 }
-
-                //print_r($data); die;
                 $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
 
                 $result = $this->clientApiService->uploadKeys($catalog, $data);
             }
-        }else{
-
-//            /** @var DialogHelper $dialog */
-//            $dialog = $this->getHelper('dialog');
-//            if (!$dialog->askConfirmation(
-//                $output,
-//                '<question>The local DB will be erased, it is ok ?</question>',
-//                false
-//            )) {
-//                die('Please, repeat the command with --force==yes in order to update remote DB with local changes');
-//            }
-
         }
 
         /**
@@ -176,22 +162,17 @@ class TranslationsSyncCommand extends ContainerAwareCommand
             $this->output->writeln(PHP_EOL . sprintf('<info>Processing catalog %s ...</info>', $catalog));
 
             $result = $this->clientApiService->downloadKeys($catalog);
-            //var_dump($result); die;
             file_put_contents(sys_get_temp_dir() . DIRECTORY_SEPARATOR . $catalog . '.json', json_encode($result));
             $bundles = $result['bundles'];
 
             foreach($result['data'] as $key=>$data){
-//$output->write("[$key]");
                 foreach($data as $locale=>$messageData){
-                    //$this->output->writeln(sprintf("\t|-- key %s:%s/%s ... ", $catalog, $key, $locale));
                     echo '.';
                     $fileName = isset($messageData['fileName']) ? $messageData['fileName'] : '';
                     $trans = Translation::newFromArray($catalog, $key, $locale, $messageData, $bundles[$key], $fileName);
                     $this->em->persist($trans);
                 }
             }
-
-            // meter las traducciones en local
 
         }
         $this->output->writeln(PHP_EOL . '<info>Flushing to DB ...</info>');
@@ -205,8 +186,7 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         /** @var DialogHelper $dialog */
         $dialog = $this->getHelper('dialog');
 
-        if(($ymlOptions['regenerate']) /*||
-            ($dialog->askConfirmation($output,'<question>Do want to regenerate local .yml files ?</question>',false))*/)
+        if(($ymlOptions['regenerate']))
         {
 
             $bundles = $this->translationsRepository->getBundles();
@@ -290,6 +270,14 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         $this->output->writeln('');
     }
 
+    /**
+     * center text in screen
+     * 
+     * @param $text
+     * @param int $width
+     *
+     * @return string
+     */
     protected function center($text, $width = 120)
     {
         $len = strlen($text);
