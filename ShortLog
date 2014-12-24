@@ -11,13 +11,24 @@ Joseluis Laso (11):
       Create LICENSE.md
       Update README.md
 
-Patrick Joseluis Laso (4):
+Patrick JL Laso (7):
+      - clarification of help for the helper command and folder creation on sync command
+      - Merge branch 'develop'
+      - first approximation to non-lzf mode
+      - checking lzf_compress in all places that is needed
+      - fixed temp dir in order to work on windows system
+      - some changes cleaning code
+      - Merge branch 'feature/new-non-lzf-mode' into develop
+
+Patrick Joseluis Laso (6):
       Update and rename LICENSE.md to LICENSE
       Update composer.json
       Update README.md
       Update composer.json
+      - fixed old references to translations.com.es
+      Update composer.json
 
-joseluis laso (58):
+joseluis laso (62):
       - First commit
       - Deletes old and not valuable files.
       - Repair references to translations_api config item
@@ -76,4 +87,8 @@ joseluis laso (58):
       - fix typo in Excel update command
       - Merge branch 'master' into develop
       - dont show message to truncate table of temporal translations
+      - change to version 1.3
+      - Merge branch 'release/1.3'
+      - Merge branch 'release/1.3' into develop
+      - Merge branch 'master' into develop
 
