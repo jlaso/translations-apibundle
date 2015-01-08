@@ -15,7 +15,8 @@
     ],
     "require": {
         "php": ">=5.3.7",
-        "liuggio/excelbundle": "~2.0"
+        "liuggio/excelbundle": "~2.0",
+        "knplabs/knp-paginator-bundle": "2.4.*@dev"
     },
     "minimum-stability": "stable",
     "autoload": {

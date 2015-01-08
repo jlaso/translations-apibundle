@@ -32,6 +32,10 @@ Then register the bundle with your kernel:
         new JLaso\TranslationsApiBundle\TranslationsApiBundle(),
         // Excel Bundle
         new Liuggio\ExcelBundle\LiuggioExcelBundle(),
+        // KNP Paginator
+        new Knp\Bundle\PaginatorBundle\KnpPaginatorBundle(),
+        // JMS Security
+        new JMS\SecurityExtraBundle\JMSSecurityExtraBundle(),
         // ...
     );
 
