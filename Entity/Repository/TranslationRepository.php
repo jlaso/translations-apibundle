@@ -68,6 +68,65 @@ class TranslationRepository extends EntityRepository
         return $queryBuilder->getQuery()->getResult();
     }
 
+    /**
+     * @param $catalog
+     *
+     * @return Translation[]
+     */
+    public function getKeysByCatalog($catalog)
+    {
+        $em = $this->getEntityManager();
+
+        $queryBuilder = $em->createQueryBuilder();
+        $queryBuilder->select('t')
+            ->from('TranslationsApiBundle:Translation', 't')
+            ->where('t.domain = :catalog')
+            ->setParameter('catalog', $catalog)
+        ;
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
+    /**
+     * @param $catalog
+     *
+     * @return Translation[]
+     */
+    public function getKeysByCatalogAndLocale($catalog, $locale)
+    {
+        $em = $this->getEntityManager();
+
+        $queryBuilder = $em->createQueryBuilder();
+        $queryBuilder->select('t')
+            ->from('TranslationsApiBundle:Translation', 't')
+            ->where('t.domain = :catalog')
+            ->andWhere('t.locale = :locale')
+            ->setParameter('catalog', $catalog)
+            ->setParameter('locale', $locale)
+        ;
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
+    /**
+     * @param $catalog
+     *
+     * @return Translation[]
+     */
+    public function getKey($key)
+    {
+        $em = $this->getEntityManager();
+
+        $queryBuilder = $em->createQueryBuilder();
+        $queryBuilder->select('t')
+            ->from('TranslationsApiBundle:Translation', 't')
+            ->where('t.key = :key')
+            ->setParameter('key', $key)
+        ;
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
     public function truncateTranslations()
     {
         $em = $this->getEntityManager();

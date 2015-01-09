@@ -18,9 +18,21 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 class AdminController extends AdminBaseController
 {
 
+    protected $maxPerPage = 10;
+    protected $currentPage = 1;
+    protected $locale = 'en';
+
     protected function init()
     {
         parent::init();
+
+        try{
+            $this->maxPerPage = $this->container->getParameter('jlaso_translationsapi.max_per_page');
+        }catch(\Exception $e){
+            $this->maxPerPage = 10;
+        }
+        $request = $this->get('request');
+        $this->currentPage = $request->query->get('page', 1);
     }
 
     /**
@@ -40,11 +52,32 @@ class AdminController extends AdminBaseController
      */
 
     /**
-     * @Route("/catalogs/list", name="jlaso_translationsapi_admin_catalogs")
+     * @Route("/catalog/list", name="jlaso_translationsapi_admin_catalogs")
      * @Secure(roles="ROLE_ADMIN")
      * @Template()
      */
-    public function catalogsIndexAction(Request $request)
+    public function catalogIndexAction(Request $request)
+    {
+        $entities   = $this->getTranslationRepository()->getCatalogs();
+        $paginator  = $this->get('knp_paginator');
+        $pagination = $paginator->paginate($entities, $this->currentPage, $this->maxPerPage);
+
+        return array(
+            'section' => 'admin.categories',
+            'pagination' => $pagination,
+        );
+    }
+
+    /**
+     * TRANSLATIONS
+     */
+
+    /**
+     * @Route("/list", name="jlaso_translationsapi_admin_translations")
+     * @Secure(roles="ROLE_ADMIN")
+     * @Template()
+     */
+    public function translationIndexAction(Request $request)
     {
         $entities = $this->getCategoriesRepository()->findAll();
 
@@ -56,73 +89,47 @@ class AdminController extends AdminBaseController
         );
 
         return array(
-            'section' => 'admin.categories',
+            'section' => 'admin.translations',
             'pagination' => $pagination,
         );
     }
 
     /**
-     * @Route("/category/edit/{categoryId}", name="jlaso_blog_admin_category_edit")
+     * @Route("/catalog/{catalog}/list", name="jlaso_translationsapi_admin_catalog_list")
      * @Secure(roles="ROLE_ADMIN")
-     * @Template("JLasoBlogBundle:Admin/Category:edit.html.twig")
-     * @ParamConverter("category", class="JLasoBlogBundle:Category", options={"id" = "categoryId"})
+     * @Template()
      */
-    public function categoryEditAction(Request $request, Category $category)
+    public function translationCatalogIndexAction(Request $request, $catalog)
     {
-        $form = $this->createForm(new CategoryType(), $category);
-
-        if($request->isMethod('POST')){
-            $form->handleRequest($request);
-
-            if ($form->isValid()) {
-
-                $this->om->persist($category);
-                $this->om->flush();
-                $this->addSuccessFlash('category.saved');
-
-                return $this->redirect($this->generateUrl('jlaso_blog_admin_categories', array('id' => $category->getId())));
-            }
-            $this->addNoticeFlash('form_submit_error');
-        }
+        $entities   = $this->getTranslationRepository()->getKeysByCatalogAndLocale($catalog, $this->locale);
+        $paginator  = $this->get('knp_paginator');
+        $pagination = $paginator->paginate($entities, $this->currentPage, $this->maxPerPage);
 
         return array(
-            'section'  => 'admin.categories',
-            'form'     => $form->createView(),
-            'category' => $category,
+            'section' => 'admin.translations_by_catalog',
+            'pagination' => $pagination,
         );
     }
 
     /**
-     * @Route("/category/new", name="jlaso_blog_admin_categories_new")
+     * @Route("/translation/{id}/edit", name="jlaso_translationsapi_admin_key_edit")
      * @Secure(roles="ROLE_ADMIN")
-     * @Template("JLasoBlogBundle:Admin/Category:create.html.twig")
+     * @Template()
      */
-    public function createAction(Request $request)
+    public function translationEditIndexAction(Request $request, $id)
     {
-        $category = new Category();
-        $form = $this->createForm(new CategoryType(), $category);
-        if($request->isMethod('POST')){
-            $form->handleRequest($request);
+        /** @var Translation $entitiy */
+        $entitiy = $this->getTranslationRepository()->find($id);
 
-            if ($form->isValid()) {
-
-                $this->om->persist($category);
-                $this->om->flush();
-                $this->addSuccessFlash('category.created');
-
-                return $this->redirect($this->generateUrl('jlaso_blog_admin_categories', array('id' => $category->getId())));
-            }
-            $this->addNoticeFlash('form_submit_error');
+        if(!$entitiy){
+            return $this->createNotFoundException();
         }
+        $entities = $this->getTranslationRepository()->getKey($entitiy->getKey());
 
-        //ldd($category, $form->createView());
         return array(
-            'section'  => 'admin.categories',
-            'category' => $category,
-            'form'     => $form->createView(),
+            'section'  => 'admin.key_edit',
+            'entities' => $entities,
         );
     }
-
-
 
 }

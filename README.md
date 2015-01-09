@@ -35,6 +35,7 @@ Then register the bundle with your kernel:
         // KNP Paginator
         new Knp\Bundle\PaginatorBundle\KnpPaginatorBundle(),
         // JMS Security
+        new JMS\AopBundle\JMSAopBundle(),
         new JMS\SecurityExtraBundle\JMSSecurityExtraBundle(),
         // ...
     );
