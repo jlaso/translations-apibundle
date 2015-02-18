@@ -29,6 +29,45 @@ class TranslationRepository extends EntityRepository
         return array_keys($catalogs);
     }
 
+    public function getBundles()
+    {
+        $em = $this->getEntityManager();
+
+        $queryBuilder = $em->createQueryBuilder();
+        $queryBuilder->select('DISTINCT t.bundle')
+            ->from('TranslationsApiBundle:Translation', 't')
+        ;
+
+        /** @var Translation[] $result */
+        $result = $queryBuilder->getQuery()->getResult();
+
+        $bundles = array();
+        foreach($result as $item){
+            $bundles[$item['bundle']] = null;
+        }
+
+        return array_keys($bundles);
+    }
+
+    /**
+     * @param $bundle
+     *
+     * @return Translation[]
+     */
+    public function getKeysByBundle($bundle)
+    {
+        $em = $this->getEntityManager();
+
+        $queryBuilder = $em->createQueryBuilder();
+        $queryBuilder->select('t')
+            ->from('TranslationsApiBundle:Translation', 't')
+            ->where('t.bundle = :bundle')
+            ->setParameter('bundle', $bundle)
+        ;
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
     public function truncateTranslations()
     {
         $em = $this->getEntityManager();

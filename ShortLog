@@ -1,0 +1,94 @@
+Joseluis Laso (11):
+      require to test if lzf required when installed
+      - since this bundle is in packagist
+      - I clarify the requirements in README
+      - fix markdown in READM
+      - change lzf requirement in composer.json
+      - remove lib-lzf because my mac not recognizes it
+      - added badgets to show downloads and version
+      Update composer.json
+      update license and name
+      Create LICENSE.md
+      Update README.md
+
+Patrick JL Laso (7):
+      - clarification of help for the helper command and folder creation on sync command
+      - Merge branch 'develop'
+      - first approximation to non-lzf mode
+      - checking lzf_compress in all places that is needed
+      - fixed temp dir in order to work on windows system
+      - some changes cleaning code
+      - Merge branch 'feature/new-non-lzf-mode' into develop
+
+Patrick Joseluis Laso (6):
+      Update and rename LICENSE.md to LICENSE
+      Update composer.json
+      Update README.md
+      Update composer.json
+      - fixed old references to translations.com.es
+      Update composer.json
+
+joseluis laso (62):
+      - First commit
+      - Deletes old and not valuable files.
+      - Repair references to translations_api config item
+      - New advances
+      - Ajuste para SF 2.2
+      - Nuevo comando que genera un archivo compacto con todas       las traducciones y cuenta las líneas y las palabras
+      - Update origin
+      - Merge branch 'master' of bitbucket.org:jlaso/translations-apibundle
+      - Advances in api
+      - Merge branch 'master' of https://bitbucket.org/jlaso/translations-apibundle
+      - Trying to change connectivity through socket
+      - socket service avances
+      - ajuste en el syncronizador express
+      - New database structure
+      - Merge branch 'master' of https://bitbucket.org/jlaso/translations-apibundle
+      - server address as argument
+      - Sets ACK and removes unused tables.
+      - perfection of mongo sync
+      - fix in socket service
+      - conflict resolution
+      - remove languages
+      - fix in socket client
+      - Advances in sync from server to local
+      - fix various typos
+      - added control to translatable documents
+      - agrego cataloguizacion al dump y envio de bundle y filename en el sync
+      - security ask before to erase local DB
+      - changes in sending filename and bundle
+      - update of translations helper in order to generate csv files
+      - helper improvement
+      - Merge branch 'master' of git://github.com/jlaso/translations-apibundle
+      - change the name of the main command and remove translations files
+      - message blank = key
+      - adjust the creation of local keys with no message with the       key as the content of message.
+      - Refactor dump command, now sync command can regenerate yml files
+      - new posibilities on syn command, now you can regenerate yml
+      - added new functionality to pdoloader in order to       recreate catalog
+      - added imagetools
+      - remove ImageTools.php
+      - configuration of bundle in order to leave messages blank or with keyname,       and fix yml regeneration option in sync command
+      - erases all the files in the translations cache folder when finish syncs
+      - fix cache files to remove
+      - removed unused code
+      - change to version 1.2
+      - Merge branch 'release/1.2'
+      - Merge branch 'release/1.2' into develop
+      - added new regex to extract keys
+      - new command dicover-and-push keys
+      - finished the discover-and-push command
+      - Merge branch 'feature/discover-and-push-command'
+      - new command to upload an entire yml to the server
+      - Merge branch 'master' of git://github.com/jlaso/translations-apibundle
+      - added new command in order to be able to update translations from a       exel with specified format
+      - added demo excel document
+      - added in README the need to add LiuggioExcelBundle in AppKernel of host project
+      - fix typo in Excel update command
+      - Merge branch 'master' into develop
+      - dont show message to truncate table of temporal translations
+      - change to version 1.3
+      - Merge branch 'release/1.3'
+      - Merge branch 'release/1.3' into develop
+      - Merge branch 'master' into develop
+

@@ -3,12 +3,11 @@
 namespace JLaso\TranslationsApiBundle\Command;
 
 use Doctrine\ORM\EntityManager;
-use JLaso\TranslationsApiBundle\Entity\Repository\SCMRepository;
 use JLaso\TranslationsApiBundle\Entity\Repository\TranslationRepository;
-use JLaso\TranslationsApiBundle\Entity\SCM;
 use JLaso\TranslationsApiBundle\Entity\Translation;
 use JLaso\TranslationsApiBundle\Service\ClientApiService;
 use JLaso\TranslationsApiBundle\Service\ClientSocketService;
+use JLaso\TranslationsApiBundle\Tools\ArrayTools;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Helper\DialogHelper;
 use Symfony\Component\Console\Input\InputArgument;
@@ -20,10 +19,9 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\Translation\MessageCatalogueInterface;
-use Symfony\Component\Yaml\Inline;
-use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Bundle\FrameworkBundle\Translation\Translator;
+use Symfony\Component\Yaml\Yaml;
 
 
 /**
@@ -58,6 +56,7 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         $this->addOption('port', null, InputArgument::OPTIONAL, 'port');
         $this->addOption('address', null, InputArgument::OPTIONAL, 'address');
         $this->addOption('upload-first', null, InputArgument::OPTIONAL, '--upload-first=yes to upload our local DB to remote first of all');
+        $this->addOption('yml', null, InputOption::VALUE_REQUIRED, '--yml=[regenerate,blank,backup] to regenerate local .yml files from remote DB', null);
     }
 
     protected function init($server = null, $port = null)
@@ -80,6 +79,25 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         $this->input    = $input;
         $this->output   = $output;
 
+        $ymlOptions = array(
+            'regenerate' => false,
+            'backup'     => false,
+            'blank'      => false,
+        );
+        $yml = $this->input->getOption('yml');
+        if($yml){
+            $aux = explode(",", $yml);
+            if(count($aux)){
+                foreach($aux as $option){
+                    $ymlOptions[$option] = true;
+                }
+            }
+        }
+        if(count($ymlOptions) != 3){
+            var_dump($ymlOptions);
+            die('Sorry, but you can use only regenerate,blank and backup with --yml option');
+        }
+
         $this->init($input->getOption('address'), $input->getOption('port'));
 
         $config         = $this->getContainer()->getParameter('translations_api');
@@ -87,6 +105,9 @@ class TranslationsSyncCommand extends ContainerAwareCommand
 
         $this->output->writeln(PHP_EOL . '<info>*** Syncing translations ***</info>');
 
+        /**
+         * uploading local catalog keys (from local table) to remote server
+         */
         if($input->getOption('upload-first') == 'yes'){
 
             $catalogs = $this->translationsRepository->getCatalogs();
@@ -116,25 +137,16 @@ class TranslationsSyncCommand extends ContainerAwareCommand
                     );
 
                 }
-
-                //print_r($data); die;
                 $this->output->writeln('uploadKeys("' . $catalog . '", $data)');
 
                 $result = $this->clientApiService->uploadKeys($catalog, $data);
             }
-        }else{
-
-            /** @var DialogHelper $dialog */
-            $dialog = $this->getHelper('dialog');
-            if (!$dialog->askConfirmation(
-                $output,
-                '<question>The local DB will be erased, it is ok ?</question>',
-                false
-            )) {
-                die('Please, repeat the command with --force==yes in order to update remote DB with local changes');
-            }
-
         }
+
+        /**
+         * download the remote catalogs and integrate into local table (previously truncate local table)
+         */
+
         // truncate local translations table
         $this->translationsRepository->truncateTranslations();
 
@@ -145,18 +157,16 @@ class TranslationsSyncCommand extends ContainerAwareCommand
         }else{
             die('error getting catalogs');
         }
-
         foreach($catalogs as $catalog){
 
             $this->output->writeln(PHP_EOL . sprintf('<info>Processing catalog %s ...</info>', $catalog));
 
             $result = $this->clientApiService->downloadKeys($catalog);
-            //var_dump($result); die;
+            file_put_contents(sys_get_temp_dir() . DIRECTORY_SEPARATOR . $catalog . '.json', json_encode($result));
             $bundles = $result['bundles'];
 
             foreach($result['data'] as $key=>$data){
                 foreach($data as $locale=>$messageData){
-                    //$this->output->writeln(sprintf("\t|-- key %s:%s/%s ... ", $catalog, $key, $locale));
                     echo '.';
                     $fileName = isset($messageData['fileName']) ? $messageData['fileName'] : '';
                     $trans = Translation::newFromArray($catalog, $key, $locale, $messageData, $bundles[$key], $fileName);
@@ -164,34 +174,111 @@ class TranslationsSyncCommand extends ContainerAwareCommand
                 }
             }
 
-            // meter las traducciones en local
-
         }
 
         $this->output->writeln(PHP_EOL . '<info>Flushing to DB ...</info>');
 
         $this->em->flush();
 
+        /**
+         * regeneration of local .yml files if user wants
+         */
+
+        /** @var DialogHelper $dialog */
+        $dialog = $this->getHelper('dialog');
+
+        if(($ymlOptions['regenerate']))
+        {
+
+            $bundles = $this->translationsRepository->getBundles();
+
+            foreach($bundles as $bundle){
+
+                if(!$bundle){
+                    continue;
+                }
+                $keys = array();
+                $filenames = array();
+                $scheme = ""; // in order to deduce filename from other keys
+
+                $translations = $this->translationsRepository->getKeysByBundle($bundle);
+                foreach($translations as $translation){
+
+                    $locale = $translation->getLocale();
+                    $file = $translation->getFile();
+                    if($file && $locale && !$scheme){
+                        $scheme = str_replace(".{$locale}.", ".%s.", $file);
+                        break;
+                    }
+                }
+
+                foreach($translations as $translation){
+
+                    $locale = $translation->getLocale();
+                    $file = $translation->getFile();
+                    if($locale && !$file && $scheme){
+                        $file = sprintf($scheme, $locale);
+                    }
+                    if($file && $locale){
+                        if(!isset($filenames[$locale])){
+                            $filenames[$locale] = $file;
+                        }
+                        $keys[$locale][$translation->getKey()] = $translation->getMessage();
+                    }
+                }
+
+                foreach($filenames as $locale=>$file){
+
+                    $this->output->writeln(sprintf('Generating <info>"%s"</info> ...', $file));
+                    $subKeys = $keys[$locale];
+                    $file = dirname($this->rootDir) . '/src/' . $file;
+                    if($ymlOptions['blank']){
+                        foreach($subKeys as $key=>$value){
+                            if(!$value){
+                                $subKeys[$key] = $key;
+                            }
+                        }
+                    }
+                    if($ymlOptions['backup'] && file_exists($file)){
+                        copy($file, $file . '.' . date('U'));
+                    }
+                    @mkdir(dirname($file), 0777, true);
+                    file_put_contents($file, ArrayTools::prettyYamlDump($subKeys));
+                }
+
+            }
+
+        }
+
+        /**
+         * erasing cached translations files
+         */
         $this->output->writeln(PHP_EOL . '<info>Clearing SF cache ...</info>');
-        /** @var Translator $translator */
-        //$translator = $this->getContainer()->get('translator');
-        //$translator->removeLocalesCacheFiles($managedLocales);
-        //exec("rm -rf ".$this->rootDir."/app/cache/*");
+
         $finder = new Finder();
-        $finder->files()->in($this->rootDir . "/cache")->name('/catalogue\./i');
+        $finder->files()->in($this->rootDir . "/cache")->name('*');
 
         foreach($finder as $file){
             $fileFull = $file->getRealpath();
             //$relativePath = $file->getRelativePath();
             $fileName = $file->getRelativePathname();
-            $this->output->writeln('removing ' . $fileName);
-
-            unlink($file);
+            if(preg_match('!/translations/.+$!i', $fileName)){
+                $this->output->writeln('removing ' . $fileName);
+                unlink($file);
+            }
         }
 
         $this->output->writeln('');
     }
 
+    /**
+     * center text in screen
+     * 
+     * @param $text
+     * @param int $width
+     *
+     * @return string
+     */
     protected function center($text, $width = 120)
     {
         $len = strlen($text);
