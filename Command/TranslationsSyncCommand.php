@@ -168,7 +168,7 @@ class TranslationsSyncCommand extends ContainerAwareCommand
 
         }
 
-        $this->output->writeln(PHP_EOL . sprintf('<info>Flushing to DB ...</info>', $catalog));
+        $this->output->writeln(PHP_EOL . '<info>Flushing to DB ...</info>');
 
         $this->em->flush();
 
