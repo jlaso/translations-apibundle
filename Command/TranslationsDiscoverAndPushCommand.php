@@ -241,21 +241,22 @@ class TranslationsDiscoverAndPushCommand extends ContainerAwareCommand
                 $key      = $candidate->getKey();
                 $bundle   = $candidate->getBundle();
                 $fileName = $candidate->getFile();
-                preg_match('|^(?<prefix>\w+)/'.$bundle.'/|', $fileName, $matches);
-                if($matches['prefix']){
-                    $prefix = $matches['prefix'];
+                if(preg_match('|^(?<prefix>\w+)/'.$bundle.'/|', $fileName, $matches)){
+                    if($matches['prefix']) {
+                        $prefix = $matches['prefix'];
 
-                    foreach($managedLocales as $locale){
+                        foreach ($managedLocales as $locale) {
 
-                        $data[$key][$locale] = array(
-                            'message'   => '',
-                            'updatedAt' => $date->format('c'),
-                            'fileName'  => $prefix . '/' . $this->genFileFromBundleAndLocale($bundle, $catalog, $locale),
-                            'bundle'    => $bundle,
+                            $data[$key][$locale] = array(
+                                'message'   => '',
+                                'updatedAt' => $date->format('c'),
+                                'fileName'  => $prefix . '/' . $this->genFileFromBundleAndLocale($bundle, $catalog,
+                                        $locale),
+                                'bundle'    => $bundle,
 
-                        );
+                            );
+                        }
                     }
-
                 }
 
             }
