@@ -484,7 +484,7 @@ class ClientSocketService
     {
         $projectId = $projectId ?: $this->project_id;
 
-        print sprintf("sending %d keys in catalog %s on project %d\n", count($data), $catalog, $projectId);
+        print sprintf("sending %d keys of catalog '%s' for project %d\n", count($data), $catalog, $projectId);
 
         return $this->callService($this->url_plan['upload_keys'], array(
                 'project_id' => $projectId,

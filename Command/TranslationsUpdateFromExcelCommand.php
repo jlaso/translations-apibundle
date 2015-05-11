@@ -87,7 +87,7 @@ class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
             }else{
                 if(preg_match("/\[(?<idx>\d+)\]/", $srch, $match)){
                     $idx = $match['idx'];
-                    $regr = "/\[\s?{$idx}\s?\]/";  //print "\n\t$idx\t$regr\t$replc\n";
+                    $regr = "/\[\s?{$idx}\s?\]/";
                 }else{
                     die("error in substitute $srch=>$replc");
                 }
@@ -135,7 +135,6 @@ class TranslationsUpdateFromExcelCommand extends ContainerAwareCommand
         $keySheet = $excel->getSheetByName('key');
         $key = array(); //array_flip(json_decode($keySheet->getCell('A1'), true));
         foreach($keySheet->getRowIterator() as $row){
-var_dump($row->getRowIndex());
             $rowNum = $row->getRowIndex();
             $cellIterator = $row->getCellIterator();
             $cellIterator->setIterateOnlyExistingCells(false); // Loop all cells, even if it is not set
@@ -143,6 +142,7 @@ var_dump($row->getRowIndex());
             foreach ($cellIterator as $cell) {
                 /** @var \PHPExcel_Cell $cell */
                 $cellValue = $cell->getCalculatedValue();
+
                 switch($cell->getColumn()){
                     case("A"):
                         $index = "[$rowNum]";
@@ -191,10 +191,8 @@ var_dump($row->getRowIndex());
             $output->writeln(PHP_EOL . sprintf('<info>Processing "%s" catalog ...</info>', $catalog));
 
             $result = $this->clientApiService->downloadKeys($catalog);
-            //var_dump($result); die;
             file_put_contents('/tmp/' . $catalog . '.json', json_encode($result));
             $bundles = $result['bundles'];
-            //var_dump($result['data']['Bad credentials']); die;
 
             foreach($result['data'] as $key=>$data){
 
@@ -211,8 +209,6 @@ var_dump($row->getRowIndex());
             }
         }
 
-        //print_r($tempData);
-
         $output->writeln("\nAnalysing the result of the match process...\n");
         $count = 0;
         // data to send to translations server
@@ -220,17 +216,19 @@ var_dump($row->getRowIndex());
         // this date guarantees that the data sent to server forces to update key
         $date = date('c');
 
+        $output->writeln("found ".count($localData)." keys in excel\n");
+
         // get the key that are repeated
         foreach($tempData as $key=>$restData){
             if(count($restData) > 1){
-                $output->writeln("\tthe key $key is in more that one catalog");
+                $output->writeln(sprintf("\tthe key %s is in more that one catalog", $key));
             }
             foreach($restData as $catalog=>$messageData){
 
                 if(!empty($messageData['new']) && ($messageData['message'] != $messageData['new'])){
 
                     //var_dump($messageData); die;
-                    $data[$key][$language] = array(
+                    $data[$catalog][$key][$language] = array(
                         'approved'  => $approved,
                         'message'   => $messageData['new'],
                         'updatedAt' => $date,
@@ -246,13 +244,17 @@ var_dump($row->getRowIndex());
         }
 
         $total = count($localData);
-        $output->writeln("\nfound $count keys that need to be updated from a total of $total keys that have the file to process\n");
+        $output->writeln("\nfound $count keys that need to be updated from a total of $total keys that had the file to be processed\n");
+
+        //var_dump($data); die;
 
         if($count){
-            //ld($data);
-            $output->writeln('uploadKeys("' . $catalog . '", $data)');
-            $result = $this->clientApiService->uploadKeys($catalog, $data);
-            //var_dump($result);
+            foreach($data as $catalog=>$restData) {
+                //ld($data);
+                //$output->writeln('uploadKeys("' . $catalog . '", $data)');
+                $result = $this->clientApiService->uploadKeys($catalog, $restData);
+                //var_dump($result);
+            }
         }
 
         $output->writeln("\n done!");
