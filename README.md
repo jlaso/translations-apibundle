@@ -1,6 +1,6 @@
 [![Latest Stable Version](https://poser.pugx.org/jlaso/translations-apibundle/v/stable.svg)](https://packagist.org/packages/jlaso/translations-apibundle) [![Total Downloads](https://poser.pugx.org/jlaso/translations-apibundle/downloads.svg)](https://packagist.org/packages/jlaso/translations-apibundle) [![Latest Unstable Version](https://poser.pugx.org/jlaso/translations-apibundle/v/unstable.svg)](https://packagist.org/packages/jlaso/translations-apibundle) [![License](https://poser.pugx.org/jlaso/translations-apibundle/license.svg)](https://packagist.org/packages/jlaso/translations-apibundle)
 
-========
+
 Overview
 ========
 
